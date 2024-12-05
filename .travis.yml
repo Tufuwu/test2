@@ -1,44 +1,37 @@
-language: java
-
-sudo: false
-dist: trusty
-
-install: echo "Disabled Travis CI 'install' stage by default"
+language: bash
+dist: xenial
+os:
+  - linux
 
 env:
   global:
-  - # ossrhUsername
-  - secure: GwuNkNkV6QUnThmV+ZsiPuR+M50sVN+7qT+Ca9qRiXAhbUJpV0kcQz+NSV/gDE9UmsdzKfPzsSaKPjtIbKN9gFzFsOCd99TXGD1n3Kkya//Pw1ziDOtZFI9EMjO/8qPIEIR+Cfk7niqpyET/ypC7aklxv8raiCVrPDXJ8TJWsYM=
-  - # ossrhPassword
-  - secure: i+gbt9z+eCnGV1TadNWPrkOgxmeTYUvfkQYOvVQ01cqkTeNL5YKoWx3cpoidEvx4Bj00XkNqXXvMEBViEgnVlA4Xqm8n/05WcVr6uJ/HFq1hkBTiVl5LJEvXH4NBVoEZJTY4h9B7ulMHqvhM9U/vTBYbjK+L+9OC6B+U/IJe2Ho=
+    - GRAVIS="https://raw.githubusercontent.com/DanySK/Gravis-CI/master/"
 
-matrix:
-  include:
-  - jdk: oraclejdk8
-    env: JAVA_VERSION=8
-  - jdk: openjdk11
-    env: JAVA_VERSION=11 DEPLOY=true
-  - jdk: openjdk16
-    env: JAVA_VERSION=16
-  - jdk: openjdk17
-    env: JAVA_VERSION=17
+  matrix:
+    # List any JDK you want to build your software with.
+    # You can see the list of supported environments by installing Jabba and using ls-remote:
+    # https://github.com/shyiko/jabba#usage
+    - JDK="adopt@1.8."
+    - JDK="amazon-corretto@1.8."
+    - JDK="openjdk@1.9."
+    - JDK="openjdk@1.11."
+    - JDK="openjdk@1.12."
+    - JDK="openjdk@1.13."
 
-before_cache:
-- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-  - "$HOME/.gradle/caches/"
-  - "$HOME/.gradle/wrapper/"
+    # Avoid re-downloading the JDK every time
+    - $HOME/.jabba/
+    - $HOME/.m2/
 
 before_install:
-- export GRADLE_JAVA_HOME="$JAVA_HOME"
-- unset _JAVA_OPTIONS
+  # Sets up the Java environment
+  - curl "${GRAVIS}.install-jdk-travis.sh" --output .install-jdk-travis.sh
+  # Get maven 3.1.1
+  - "wget http://apache.mirror.iphh.net/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz && tar xfz apache-maven-3.1.1-bin.tar.gz && sudo mv apache-maven-3.1.1 /usr/local/maven-3.1.1 && sudo rm -f /usr/local/maven && sudo ln -s /usr/local/maven-3.1.1 /usr/local/maven"
+
+before_script:
+  - bash .install-jdk-travis.sh
 
 script:
-- ./gradlew check --info -Dorg.gradle.java.home="$GRADLE_JAVA_HOME"
-- if [ -n "$(git status -su src-gen)" ]; then exit 1; fi
-
-after_success:
-- if [[ -n $DEPLOY ]]; then bash <(curl -s https://codecov.io/bash); fi
-- if [[ -n $DEPLOY ]] && [ "$TRAVIS_REPO_SLUG" == "vavr-io/vavr" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./gradlew uploadArchives -PossrhUsername="$ossrhUsername" -PossrhPassword="$ossrhPassword"; fi
+  - /usr/local/maven/bin/mvn verify -B
