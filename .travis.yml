@@ -1,37 +1,36 @@
-language: bash
-dist: xenial
-os:
-  - linux
+language: java
+sudo: required
+dist: trusty
+#group: edge
+
+script:
+  - ./gradlew check
+cache:
+  directories:
+  - $HOME/.gradle
+
+before_install:
+  - export GRADLE_OPTS=-Xmx1024m
+
+matrix:
+  include:
+# JDK 7 no longer supported by Gradle 6+
+#    - jdk: openjdk7
+    - jdk: oraclejdk8 # JDK 1.8.0_131-b11
+    - jdk: oraclejdk9
+
+# Don't let Travis CI execute './gradlew assemble' by default
+# From https://github.com/reactive-streams/reactive-streams-jvm/pull/383
+install:
+# Display Gradle, JVM and other versions
+  - ./gradlew -version
 
 env:
   global:
-    - GRAVIS="https://raw.githubusercontent.com/DanySK/Gravis-CI/master/"
+  - TERM=dumb
+  - DEFAULT_TIMEOUT_MILLIS=300
+  - DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS=200
+  - PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300
+addons: # Fix OpenJDK build. Issue: https://github.com/travis-ci/travis-ci/issues/5227 & https://docs.travis-ci.com/user/hostname
+  hostname: rs-jvm
 
-  matrix:
-    # List any JDK you want to build your software with.
-    # You can see the list of supported environments by installing Jabba and using ls-remote:
-    # https://github.com/shyiko/jabba#usage
-    - JDK="adopt@1.8."
-    - JDK="amazon-corretto@1.8."
-    - JDK="openjdk@1.9."
-    - JDK="openjdk@1.11."
-    - JDK="openjdk@1.12."
-    - JDK="openjdk@1.13."
-
-cache:
-  directories:
-    # Avoid re-downloading the JDK every time
-    - $HOME/.jabba/
-    - $HOME/.m2/
-
-before_install:
-  # Sets up the Java environment
-  - curl "${GRAVIS}.install-jdk-travis.sh" --output .install-jdk-travis.sh
-  # Get maven 3.1.1
-  - "wget http://apache.mirror.iphh.net/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz && tar xfz apache-maven-3.1.1-bin.tar.gz && sudo mv apache-maven-3.1.1 /usr/local/maven-3.1.1 && sudo rm -f /usr/local/maven && sudo ln -s /usr/local/maven-3.1.1 /usr/local/maven"
-
-before_script:
-  - bash .install-jdk-travis.sh
-
-script:
-  - /usr/local/maven/bin/mvn verify -B
