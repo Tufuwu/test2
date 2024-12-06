@@ -1,25 +1,28 @@
-language: java
+language: android
 
-script: ./build.sh jar testTravis
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+$/
+    - /^v\d+\.\d+\.\d+-beta\d+$/
+    - /^v\d+\.\d+\.\d+-rc\d+$/
 
-cache:
-  directories:
-    - $HOME/.m2/repository
+sudo: false
 
-os: linux
+jdk:
+  - oraclejdk8
 
-jobs:
-  include:
-    - jdk: openjdk11
-      before_script:
-        - "cd h2"
-        - "echo $JAVA_OPTS"
-        - "export JAVA_OPTS=-Xmx512m"
-    - jdk: oraclejdk8
-      dist: trusty
-      group: edge
-      before_script:
-        - "cd h2"
-        - "echo $JAVA_OPTS"
-        - "export JAVA_OPTS=-Xmx512m"
+env:
+  global:
+    - EMULATOR_API=22 # 24 has some issues, probably some overlayed window
+    - EMULATOR_ABI=x86_64 # seems to work with emulator v29.
+    - EMULATOR_TAG=default # can be google_apis
+    - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
+
+
+script:
+  - ./gradlew clean demo:assembleDebug cameraview:testDebugUnitTest  cameraview:mergedCoverageReport cameraview:javadoc
+cameraview:connectedCheck
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -s "*/build/reports/mergedCoverageReport/"
 
