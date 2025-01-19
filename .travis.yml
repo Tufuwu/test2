@@ -1,16 +1,13 @@
 language: python
-dist: Xenial
-python: "3.6"
-
+python:
+  - "3.6"      # current default Python on Travis CI
+# command to install dependencies
 install:
-  # Get Migen / LiteX / Cores
-  - cd ~/
-  - wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
-  - python3 litex_setup.py init install
-  # Install the version being tested
-  - cd $TRAVIS_BUILD_DIR
-  - python3 setup.py install
-
+  - sudo apt-get -y update
+  - sudo apt-get -y install libgmp-dev libmpc-dev libmpfr-dev
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+  - pip install -r web_console_v2/api/requirements.txt
+# command to run tests
 script:
-  - cd $TRAVIS_BUILD_DIR
-  - python setup.py test
+  - bash ./ci/ci_test.sh
