@@ -1,21 +1,25 @@
+dist: bionic # Not using focal yet, because Python 2.7 is not available there
 language: python
-python:
-# Disabled python2 testing due to package installation issues and python2 being
-# deprecated
-#    - "2.7"
-    - "3.6"
-    - "3.7"
-# Disabling Torque setup until we can get this working on Travis
-# before_install:
-#     - sudo apt-get install torque-server torque-client torque-mom torque-pam
-#     - sudo ./test/setup_torque.sh
-install:
-    - pip install .
-before_script:
-    - pip install -r test/requirements_test.txt
+python: 3.9
+
+env:
+  - PREPARED_STATEMENTS=0
+  - PREPARED_STATEMENTS=1
+
+services:
+  - docker
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - docker-compose --version
+  - docker-compose --project-name django-multitenant up -d || { docker-compose logs && false ; }
+  - docker-compose -f ./single-node-docker-compose.yml --project-name django-multitenant up -d
+
+
+install: pip install tox
+
 script:
-    - payu list
-    - pylint --extension-pkg-whitelist=netCDF4 -E payu
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 || $TRAVIS_PYTHON_VERSION == 3.7 ]]; then PYTHONPATH=. pytest --cov=payu -s test; fi;
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 || $TRAVIS_PYTHON_VERSION == 3.7 ]]; then coveralls; fi;
-    - cd docs && make html
+  - tox
