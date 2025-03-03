@@ -1,72 +1,42 @@
-sudo: false
+# vim ft=yaml
+# travis-ci.org definition for DueCredit build
 language: python
-cache: pip
-dist: bionic
+sudo: false
+arch:
+  - amd64
+  # no longer works -- might troubleshoot later
+  #- ppc64le
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+#  - "pypy"
+#  - "pypy3"
+cache:
+  - pip
+before_install:
+  # - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_retry sudo apt-get update -qq; fi
+    - if [ "$TRAVIS_ARCH" = "ppc64le" ]; then 
+          sudo chown -Rvf $USER:$GROUP ~/.cache/pip/wheels; 
+      fi
 
-matrix:
-  include:
-    - python: 3.9
-      env: TOXENV=docs
-    - python: 3.8
-      env: TOXENV=prospector
-    - python: 3.5
-      env: TOXENV=py35-2.2
-    - python: 3.6
-      env: TOXENV=py36-2.2
-    - python: 3.7
-      env: TOXENV=py37-2.2
-    - python: 3.8
-      env: TOXENV=py38-2.2
-    - python: pypy3
-      env: TOXENV=pypy3-2.2
-    - python: 3.6
-      env: TOXENV=py36-3.0
-    - python: 3.7
-      env: TOXENV=py37-3.0
-    - python: 3.8
-      env: TOXENV=py38-3.0
-    - python: pypy3
-      env: TOXENV=pypy3-3.0
-    - python: 3.6
-      env: TOXENV=py36-3.1
-    - python: 3.7
-      env: TOXENV=py37-3.1
-    - python: 3.8
-      env: TOXENV=py38-3.1
-    - python: pypy3
-      env: TOXENV=pypy3-3.1
-    - python: 3.6
-      env: TOXENV=py36-3.2
-    - python: 3.7
-      env: TOXENV=py37-3.2
-    - python: 3.8
-      env: TOXENV=py38-3.2
-    - python: 3.9
-      env: TOXENV=py39-3.2
-    - python: pypy3
-      env: TOXENV=pypy3-3.2
-    - python: 3.8
-      env: TOXENV=py38-main
-    - python: 3.9
-      env: TOXENV=py39-main
-# TODO: Enable when Python 3.10 is released.
-#    - python: 3.10
-#      env: TOXENV=py310-main
-    - python: pypy3
-      env: TOXENV=pypy3-main
-  allow_failures:
-    - python: 3.8
-      env: TOXENV=py38-main
-    - python: 3.9
-      env: TOXENV=py39-main
-# TODO: Enable when Python 3.10 is released.
-#    - python: 3.10
-#      env: TOXENV=py10-main
-    - python: pypy3
-      env: TOXENV=pypy3-main
+git:
+  depth: 99999
+
 install:
-    - pip wheel -r tests/requirements.txt codecov
-    - pip install virtualenv codecov tox
+  - if [[ $TRAVIS_PYTHON_VERSION == pypy ]] ; then dpkg --compare-versions $(pypy --version 2>&1 | awk '/PyPy/{print $2;}') ge 2.5.1 || { d=$PWD; cd /tmp; wget --no-check-certificate https://bitbucket.org/pypy/pypy/downloads/pypy-2.5.1-linux64.tar.bz2; tar -xjvf pypy*bz2; cd pypy-*/bin/; export PATH=$PWD:$PATH; cd $d; } ; fi
+  - travis_retry pip install -q coveralls codecov
+  - python setup.py --help # just to trigger generation of .version
+  - pip install -e '.[tests]'
+  - pip install --upgrade flake8 pytest
+
 script:
-  - tox
-after_success: codecov
+  #- nosetests --with-doctest --with-cov --cover-package duecredit --logging-level=INFO -v
+  - coverage run --source duecredit -m py.test
+  - python setup.py install  # test installation
+  # for now flaking only the stub.py
+  - flake8 duecredit/stub.py
+
+after_success:
+  - coveralls
+  - codecov
