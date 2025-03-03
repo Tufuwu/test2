@@ -1,19 +1,23 @@
-language: python  # 3.6 by default
 
-os: linux
+services:
+    - docker
 
-before_install:
-  - pip install poetry
-
-install:
-  - poetry install
-
-script:
-  - make check
+language: python
+python: '3.6'
 
 env:
-  - SECRET_KEY=secret
-    GITHUB_AUTH_TOKEN=secret
-    GITHUB_WEBHOOK_TOKEN=secret
+    - MAKE_TARGET=test
+    - MAKE_TARGET=itest_xenial
+    - MAKE_TARGET=itest_bionic
+    - MAKE_TARGET=itest_stretch
+    - MAKE_TARGET=itest_buster
 
-cache: pip
+before_install:
+    - pip install tox
+    - sudo apt-get install -y --no-install-recommends zsh
+    # write-safety tests fail otherwise
+    - umask 022
+
+
+script:
+    - make $MAKE_TARGET
