@@ -1,25 +1,15 @@
-# vim :set ts=2 sw=2 sts=2 et :
----
 language: python
-cache: pip
-
-sudo: false
-
+os:
+  - linux
 matrix:
+  fast_finish: true
   include:
-    - env: TOXENV=py36
-      python: 3.6
-    - env: TOXENV=flake8
-    - env: TOXENV=isort
-
-services:
-  - postgresql
-
-env:
-  - DATABASE_URL=postgres://postgres@localhost/postgres
-
+  - python: 3.6
+  - python: 3.7
+  - python: 3.8
+  - python: 3.9
+  - python: pypy3
 install:
-  - pip install tox
-
-script:
-  - tox
+  - pip install -U setuptools>=39.2.0
+  - python setup.py develop
+script: python setup.py test
