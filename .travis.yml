@@ -1,19 +1,19 @@
-language: python
+language: python  # 3.6 by default
+
 os: linux
-dist: xenial
-python:
-  - 3.6
-  - 3.7
-  - 3.8
-  - 3.9-dev
+
+before_install:
+  - pip install poetry
 
 install:
-  - pip install pyflakes pytest pytest-doctestplus
+  - poetry install
 
 script:
-  - set -e
-  - pyflakes .
-  - python -We:invalid -We::SyntaxWarning -m compileall -f -q removestar/
-  - pytest
-  # Make sure it installs
-  - python setup.py install
+  - make check
+
+env:
+  - SECRET_KEY=secret
+    GITHUB_AUTH_TOKEN=secret
+    GITHUB_WEBHOOK_TOKEN=secret
+
+cache: pip
