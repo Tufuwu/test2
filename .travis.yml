@@ -1,22 +1,79 @@
 language: python
-sudo: required
-dist: xenial
-python:
-- '3.5'
-- '3.6'
-- '3.7'
-- '3.8'
+
+env:
+    global:
+        - PACKAGE="PHPUnitKit"
+    matrix:
+        - SUBLIME_TEXT_VERSION="3"
+
+services:
+  - xvfb
+
+matrix:
+    include:
+        - os: linux
+          python: 3.3
+          dist: trusty
+        - os: linux
+          python: 3.8
+        - os: osx
+          language: generic
+
+before_install:
+    - curl -OL https://raw.githubusercontent.com/SublimeText/UnitTesting/master/sbin/travis.sh
+    # Enable GUI. See https://docs.travis-ci.com/user/gui-and-headless-browsers.
+    - if [ "$TRAVIS_PYTHON_VERSION" == "3.3" ]; then
+            export DISPLAY=:99.0;
+            sh -e /etc/init.d/xvfb start;
+      fi
+
 install:
-- pip install -r requirements.txt
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+            if [ "$TRAVIS_PYTHON_VERSION" == "3.3" ]; then
+                pip install flake8==3.5;
+                pip install flake8-docstrings;
+                pip install pydocstyle==3.0.0;
+                pip install coverage==4.5.4;
+                pip install codecov==2.0.15;
+                pip install python-coveralls;
+                pip install mypy==0.540;
+                flake8 --version;
+                mypy --version;
+            else
+                pip install flake8;
+                pip install flake8-docstrings;
+                pip install pydocstyle;
+                pip install coverage==4.5.4;
+                pip install codecov==2.0.15;
+                pip install python-coveralls;
+                pip install mypy;
+                flake8 --version;
+                mypy --version;
+            fi
+      fi
+    - sh travis.sh bootstrap
+
 script:
-- pytest
-deploy:
-  provider: pypi
-  skip_existing: true
-  distributions: sdist bdist_wheel
-  user: __token__
-  password:
-    secure: ZZ0w9ZIdsj14xFGmHJfsN/pcKsaOWmrNzTO4F9yZsfWqMZ7HX2oBKyqYcGcIad4oyLoBKjpYxAX5TdTJvXQ3BE5L+nc/l8GQuLMiXLo3q37V/1XtZjCoXd6IXWSN1xnYsOGUkxKbp/FRIL8poqw4ZlEd7tJmxUZJU1rG8vHllBY4fT5tPBwYiivIncWUVtFef+midLLyrkJoU+OTeQX8DNjevUGPkEZ6wV58GMM3DQXWSCmwyZyLyyhFxp7AWUAQNwuAnXQZYrkAyjSyXofmGS/dSgx+4FJcXkRG05apF2ESUCV4/BNE0SurWYn4jNe5gnBY2HcVwFMuUcOiCkyy0jeaqEtNF8g/EG9ndQVqgNs/TeY3eJmSoLlVm4FjxGGFioswWMg1JfU0G0Lh2S9Tg7uRlxgY6MG2rGVrNGSAUfiM4axOEWSlD8fKpHF2u95GlE+vCa0t0+lj4oHASlwVdpnQwC+f1zSPafUEvoS00pQW2pBSeSZTmii4mxk6TZ28TTDiVHecsEBjES0LXqqbWt/PzFtQM26JTSDghGzCQqxQle4FmUQdKZThNQh62xxf3L7UQDGIRalSNIIxEZPQEaFATWxZqIxZXvSDDXYFhh2JeO7jWC6F8/PS4ve0pET+GSQuUAToSPOutDYFHr6CNY24+OWicWq0M5KaZTpZdrg=
-  on:
-    tags: true
-    branch: master
+    - sh travis.sh run_tests --coverage
+    - sh travis.sh run_syntax_compatibility
+    - sh travis.sh run_syntax_tests
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+            flake8;
+            cd "$HOME/.config/sublime-text-3/Packages/$PACKAGE/";
+            find . -type d ! -path "*/\.*" ! -path "./tmp*" ! -path "./htmlcov*" ! -path "./bin*" ! -path "./res*" ! -path "./tests/fixtures*" ! -exec test -f "{}/__init__.pyi" ";" ! -exec test -f "{}/__init__.py" ";" -exec touch "{}/__init__.pyi" ";" -print;
+            find . -type f -name __init__.py -print;
+            find . -type f -name __init__.pyi -print;
+            if [ "$TRAVIS_PYTHON_VERSION" == "3.3" ]; then
+                mypy "../$PACKAGE" || true;
+            else
+                mypy --show-error-codes "../$PACKAGE" || true;
+            fi;
+            cd "$TRAVIS_BUILD_DIR";
+      fi
+
+after_success:
+    - coveralls
+    - codecov
+
+notifications:
+    email: false
