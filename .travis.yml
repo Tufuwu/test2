@@ -1,27 +1,16 @@
 language: python
 python:
-- '3.4'
-- '3.5'
-- '3.6'
-git:
-  depth: false
-install: pip install codecov gitchangelog tox-travis
-script: tox
+  - "3.7"
+  - "3.8"
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install --yes gcc python3-dev libsqlcipher-dev
+  - pip install -U pip
+  - pip install pycodestyle codecov
+  - python3 setup.py install
+script:
+  - pycodestyle --exclude=venv --ignore=E501 .
+  - coverage run --source=. -m pytest
+  - coverage report -m
 after_success:
-- codecov
-- export CHANGELOG=$(gitchangelog $(git describe --abbrev=0 --tags HEAD^)..HEAD)
-deploy:
-- provider: pypi
-  distributions: sdist bdist_wheel
-  user: $TWINE_USERNAME
-  password: $TWINE_PASSWORD
-  on:
-    tags: true
-    python: '3.6'
-- provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file: dist/*
-  skip_cleanup: true
-  on:
-    tags: true
-    python: '3.6'
+  - codecov
