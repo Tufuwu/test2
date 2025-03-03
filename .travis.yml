@@ -1,16 +1,12 @@
 language: python
 python:
-  - "3.7"
-  - "3.8"
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install --yes gcc python3-dev libsqlcipher-dev
-  - pip install -U pip
-  - pip install pycodestyle codecov
-  - python3 setup.py install
+  - "3.6"
 script:
-  - pycodestyle --exclude=venv --ignore=E501 .
-  - coverage run --source=. -m pytest
-  - coverage report -m
-after_success:
-  - codecov
+  - python setup.py test
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+    - python: 3.10
+      sudo: true
