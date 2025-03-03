@@ -1,3 +1,7 @@
+os: linux
+
+dist: focal
+
 language: python
 
 python:
@@ -6,14 +10,21 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
-  - "pypy3"
+  - pypy3
 
 install:
-  - pip install pytest-cov msgpack-python coveralls pytest-pep8
   - pip install -e .
-  
-script:
-  - pytest -W ignore::pytest.PytestDeprecationWarning --pep8 src/ahocorapy/ --cov src/ahocorapy/ --cov-report term-missing  tests/ahocorapy_test.py
+  - pip install requests pytest-cov coveralls
+
+before_script:
+  - docker-compose -f tests/config/docker-compose.yml up -d
+  - sleep 120
+  - ./tests/config/bootstrap
+
+script: py.test -v --cov=pygelf
+
+after_script:
+  - docker-compose -f tests/config/docker-compose.yml down
 
 after_success:
   - coveralls
