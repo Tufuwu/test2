@@ -1,24 +1,25 @@
+# vim :set ts=2 sw=2 sts=2 et :
 ---
-dist: bionic
 language: python
+cache: pip
 
-install: pip install -U pip tox
+sudo: false
 
 matrix:
-  fast_finish: true
   include:
-    - name: Python 3.6 tests
-      python: "3.6"
-      script: tox -e py36
+    - env: TOXENV=py36
+      python: 3.6
+    - env: TOXENV=flake8
+    - env: TOXENV=isort
 
-    - name: Python 3.7 tests, linting
-      python: "3.7"
-      script: tox -e py37,lint
+services:
+  - postgresql
 
-    - name: Python 3.8 tests, linting
-      python: "3.8"
-      script: tox -e py38,lint
+env:
+  - DATABASE_URL=postgres://postgres@localhost/postgres
 
-    - name: Python 3.9 tests, linting
-      python: "3.9"
-      script: tox -e py39,lint
+install:
+  - pip install tox
+
+script:
+  - tox
