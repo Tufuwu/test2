@@ -1,43 +1,54 @@
+dist: xenial
 language: python
-
-# sudo false implies containerized builds
 sudo: false
-
+cache: pip
 python:
-  # - "3.6"
-  - "3.8"
+- '3.6'
+- '3.5'
+- '2.7'
+env:
+- PACKAGES="django>=1.11,<1.12"
+- PACKAGES="django>=2.0,<2.1"
+matrix:
+  exclude:
+  - python: '2.7'
+    env: PACKAGES="django>=2.0,<2.1"
+  include:
+  - python: '3.6'
+    env: PACKAGES="django>=2.1,<2.2"
+  - python: '3.6'
+    env: PACKAGES="django>=2.2,<2.3"
+  - python: '3.6'
+    env: PACKAGES="django>=3.0,<3.1"
+  allow_failures:
+  - python: '2.7'
+    env: PACKAGES="django>=1.11,<1.12"
 
 before_install:
-  # Here we download miniconda and install the dependencies
-  - export MINICONDA=$HOME/miniconda
-  - export PATH="$MINICONDA/bin:$PATH"
-  - hash -r
-  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -f -p $MINICONDA
-  - conda config --set always_yes yes
-  - conda config --add channels conda-forge
-  # - conda config --set channel_priority strict 
-  - conda update -q conda
-  - conda info -a
-  - echo "Python version var"
-  - echo $TRAVIS_PYTHON_VERSION
-  # Edit the environment.yml file for the target Python version
-  - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' ./environment.yml
-  - conda env create -f environment.yml
-  - source activate mixsea
-
-# install the package itself
+- pip install codecov
 install:
-  - python setup.py install
-
-# command to run tests
+- pip install -U pip wheel setuptools
+- pip install $PACKAGES -e .[tests]
 script:
-  - python --version
-  - pytest
-  - black --check mixsea/
-
-# safelist
+- coverage run --rcfile=.coveragerc runtests.py
+after_success:
+- codecov
 branches:
   only:
-  - main
-  - stable
+  - master
+notifications:
+  irc:
+    channels:
+    - irc.freenode.org#django-fluent
+    template:
+    - '%{repository}#%{build_number} (%{commit}) %{message}  --  %{build_url}'
+    skip_join: true
+  email:
+    recipients:
+    - travis@edoburu.nl
+    on_success: never
+    on_failure: always
+  slack:
+    secure: CJ+oORfxdm/EQDbIbQ8VZmPLgA15wohO7tv5RpgZXnuTBIWrWE/DwGULqms8P6qiDgHyvR/S8g2wGdaS2HXdz/aDpPPfypyRJJu9y1mupuv1tG2NkN7+7qmjRhjTrn9vvo5I8GaEGKtGVh5jMeahsZkqrYykmLB9rsHoyhZwNmo=
+    on_success: never
+    on_failure: always
