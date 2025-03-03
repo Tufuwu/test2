@@ -1,15 +1,36 @@
-dist: focal
-sudo: false
-language: python
-python:
-  - "3.9"
-env:
-  - PIP_DJANGO='Django~=3.1.9'
-  - PIP_DJANGO='Django~=3.2.0'
+language: cpp
+dist: trusty
+matrix:
+  include:
+  - os: linux
+    env: CONDA=3.7
+  - os: osx
+    env: CONDA=3.7
+before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
+    wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${CONDA:0:1}-latest-$OS.sh
+    bash miniconda.sh -b -p $HOME/miniconda
+    export PATH="$HOME/miniconda/bin:$PATH"
+    conda config --set always_yes yes --set changeps1 no
+    conda config --add channels conda-forge
+    conda update -q conda
+    conda install -q conda-build
+    conda create -q -n test-environment python=$CONDA
+    source activate test-environment
+  - pip install Cython
+  - python -m pip install 'pybind11>=2.4'
+  - pip install pytest-cov
+  - pip install codecov --ignore-installed certifi
+  - pip install quadprog
+  - pip install jaxlib
+  - pip install jax
 install:
-  - "pip install $PIP_DJANGO pyyaml coveralls pytest-django"
-  - "pip install -e ."
+  - python setup.py develop
+
 script:
-  coverage run $VIRTUAL_ENV/bin/py.test --ds=test_settings typedmodels/tests.py
-after_success:
-  coveralls
+  - pytest
+
+after_sucess:
+  - codecov
