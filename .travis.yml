@@ -1,46 +1,14 @@
-dist: bionic
-# osx build as per https://github.com/travis-ci/travis-ci/issues/9929#issuecomment-410672090
+import subprocess
+import sys
 
-language: python
-notifications:
-  email: false
 
-env:
-  global:
-    - CI=true
+def test_smoke_test_on_initialized_session(initialized_session, fast_tests_root):
+    command = [sys.executable, "-m", "cosmic_ray.tools.filters.git", str(initialized_session)]
 
-cache:
-    pip: true
-    directories:
-    #- $HOME/Library/Caches/Homebrew
-    - $HOME/Library/Caches/pip
-    #- $HOME/env/python3.7.0/lib/python3.7/site-packages
-    - $HOME/.cache  # cython cache
-    - $HOME/.ccache  # compiler cache
+    subprocess.check_call(command, cwd=str(fast_tests_root))
 
-matrix:
-  include:
-    - python: 3.6
-    - python: pypy3
-    - os: osx
-      osx_image: xcode10
-      sudo: required
-      language: generic
-      before_install:
-      #  Manually install python on osx
-      #- brew update
-      #- brew upgrade python
-      - pip install virtualenv
-      - virtualenv env -p python3
-      - source env/bin/activate
 
-install:
-  - pip install -r requirements-dev.txt
-  - pip install flake8
-  - pip install .
+def test_smoke_test_on_execd_session(execd_session, fast_tests_root):
+    command = [sys.executable, "-m", "cosmic_ray.tools.filters.git", str(execd_session)]
 
-script:
-  - flake8 . --ignore=F403,E501,E123,E128,F401,F405,E402,F821,F841,E721,E265,F811,W504 --exclude=docs,build,env
-  - cd unittest
-  - python start.py
-    #- make $TEST_SUITE
+    subprocess.check_call(command, cwd=str(fast_tests_root))
