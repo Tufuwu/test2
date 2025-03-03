@@ -1,42 +1,31 @@
-language: python
-
 dist: xenial
+language: python
+python:
+  - 3.8
+  - 3.7
+  - 3.6
 
-matrix:
-  include:
-    - python: 3.5
-      env: TOX_ENV='flake8'
-    - python: 3.5
-      env: TOX_ENV='isort'
-    # Django 2.2, run all supported versions for LTS releases
-    - python: 3.5
-      env: DJANGO='dj22'
-    - python: 3.6
-      env: DJANGO='dj22'
-    - python: 3.7
-      env: DJANGO='dj22'
-    - python: 3.8
-      env: DJANGO='dj22'
-    # Django 3.0, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj30'
-    # Django 3.1, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj31'
-      # Django 3.2, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj32'
+env:
+  - TOX_SKIP_ENV=".*djangomaster.*"
+  - TOX_SKIP_ENV=".*django[^m].*"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $TRAVIS_BUILD_DIR/.tox
+
+notifications:
+  email: false
 
 install:
-  - pip install coverage isort tox
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then export PY_VER=py35; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then export PY_VER=py36; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then export PY_VER=py37; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.8' ]]; then export PY_VER=py38; fi"
-  - "if [[ ${DJANGO}z != 'z' ]]; then export TOX_ENV=$PY_VER; fi"
+  - pip install coveralls tox
+
+matrix:
+  allow_failures:
+    - env: TOX_SKIP_ENV=".*django[^m].*"
 
 script:
-  - tox -e $TOX_ENV
+  - tox
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - coveralls
