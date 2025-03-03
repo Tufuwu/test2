@@ -1,38 +1,19 @@
 language: python
-python: '3.5'
-sudo: false
-env:
-  global:
-    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
-    - SEGFAULT_SIGNALS=all
-  matrix:
-    - TOXENV=check
-    - TOXENV=docs
-{% for env in tox_environments %}{{ '' }}
-    - TOXENV={{ env }},codecov
-{% endfor %}
+os: linux
+dist: xenial
+python:
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9-dev
 
-before_install:
-  - python --version
-  - uname -a
-  - lsb_release -a
 install:
-  - pip install tox
-  - virtualenv --version
-  - easy_install --version
-  - pip --version
-  - tox --version
+  - pip install pyflakes pytest pytest-doctestplus
+
 script:
-  - tox -v
-after_failure:
-  - more .tox/log/* | cat
-  - more .tox/*/log/* | cat
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
-cache:
-  directories:
-    - $HOME/.cache/pip
-notifications:
-  email:
-    on_success: never
-    on_failure: always
+  - set -e
+  - pyflakes .
+  - python -We:invalid -We::SyntaxWarning -m compileall -f -q removestar/
+  - pytest
+  # Make sure it installs
+  - python setup.py install
