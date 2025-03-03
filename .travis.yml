@@ -1,21 +1,26 @@
-notifications:
-  email: false
-
 language: python
-
+dist: bionic
+addons:
+    postgresql: "10"
+    apt:
+        packages:
+            - "postgresql-10-postgis-2.5"
+sudo: false
 python:
-  - '3.5'
-  - '3.6'
-
-matrix:
-  include:
-    - python: '3.7'
-      dist: xenial
-      sudo: true
-
-before_install:
-  - pip install flake8
-
+    - "3.7"
+    - "3.8"
+env:
+    - DJANGO_VERSION=2.2
+    - DJANGO_VERSION=3.0
+install: 
+    - pip install -U setuptools six
+    - pip install --pre -e .[dev] Django==$DJANGO_VERSION
+before_script:
+    - psql -c "CREATE USER test with PASSWORD 'test' CREATEDB SUPERUSER;" -U postgres
+    - psql -c "CREATE DATABASE test;" -U postgres
+    - psql -c "CREATE EXTENSION postgis;" -U postgres -d test
 script:
-  - python setup.py test
-  - flake8 --max-line-length 120 *.py
+    - ./run-tests.sh
+    - flake8
+after_success:
+    - coveralls
