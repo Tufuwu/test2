@@ -1,15 +1,23 @@
-dist: xenial
+language: python
+arch:
+  - amd64
+  - ppc64le
+python:
+  - '2.7'
+  - '3.9'
 
-langauge: python
+install: pip install -r dev-requirements.txt
 
-python: "3.6"
+script:
+  - make clean
+  - make pep8
+  - make flake8
+  - make check
+  - make unittest
 
-before_install:
-  - sudo apt-get update
+notifications:
+  email:
+    - eosplus-dev@arista.com
 
-install:
-  - sudo apt install python3-pip
-  - sudo pip3 install -r test-requirements.txt
-  - sudo pip3 install tox
-
-script: tox .
+after_success:
+  coveralls
