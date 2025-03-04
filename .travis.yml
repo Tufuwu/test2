@@ -1,49 +1,53 @@
+# this is essential to make python work out of the box
 language: python
 
-services:
-  - redis
-  - mongodb
+dist: focal
 
+# safelist
+branches:
+  only:
+  - master
+
+# Define which python version to build against.
+# As blender comes bundled with it's own python you can use just one version if you like
 python:
-  - "3.7"
-  - "3.8"
+  - "3.10.2"
 
-env:
-  - DJANGO=3.1.2
-  - DJANGO=2.2.16
+before_install:
+  # update apt-gets repository sources
+  - sudo apt-get update -qq
 
-sudo: true
-dist: xenial
-
-addons:
-  apt:
-    packages:
-      - tcl8.5
-
-before_script:
-  - git clone https://github.com/antirez/disque.git disque_server
-  - "cd disque_server/src && make && PREFIX=../ make install && cd -"
-  - "./disque_server/bin/disque-server &"
-  - ./disque_server/bin/disque PING
+  # install blender from official sources.
+  # This will most propably install an outdated blender version,
+  # but it will resolve all system dependencies blender has to be able to run.
+  - sudo apt-get install blender
 
 install:
-  - pip install -q django==$DJANGO
-  - pip install -r requirements.txt
-  - pip install pytest --upgrade
-  - pip install pytest-django codecov sphinx poetry
-  - poetry install
+  # create temp directory where we store a recent blender version
+  - mkdir tmp && cd tmp
 
-script:
-  - coverage run --source=django_q -m py.test
-  - sphinx-build -b html -d docs/_build/doctrees  -nW docs docs/_build/html
+  # download the blender version you want to test against
+  - wget https://mirrors.ocf.berkeley.edu/blender/release/Blender3.2/blender-3.2.0-linux-x64.tar.xz
 
-after_success:
-  - codecov
+  # Extract the archive
+  - tar -xf blender-3.2.0-linux-x64.tar.xz
 
-notifications:
-  webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/cbcff78c4be241602332
-    on_success: change
-    on_failure: always
-    on_start: never
+  # rename the extracted folder to "blender" for easier reference
+  - mv blender-3.2.0-linux-x64 blender
+
+  # remove the archive, we do not need it anymore
+  - rm blender-3.2.0-linux-x64
+
+  # go back to root directory
+  - cd ..
+
+  # now create a symlink to the addon within blenders addons directory
+  # this is important, because otherwhise blender would not be able to load the addon
+  # - sudo ln -s ${PWD}/phobos ${PWD}/tmp/blender/2.79/scripts/addons/phobos
+
+  # instead we use the setup.py to install the addon to the folder
+  - python ${PWD}/setup.py -t ${PWD}/tmp/blender/3.2/scripts/addons/phobos -b ${PWD}/tmp/blender
+  - ls ${PWD}/tmp/blender/3.2/scripts/addons/phobos
+
+# Finally start our test runner passing it the blender executable from the downloaded blender release
+script: python test/testrunner.py ./tmp/blender/blender
