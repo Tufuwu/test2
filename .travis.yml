@@ -1,57 +1,134 @@
 language: python
 
-git:
-  depth: false
-  autocrlf: input
+env:
+  global:
+  - SDL_VIDEODRIVER=dummy
+  - SDL_AUDIODRIVER=dummy
+  - SDL_RENDER_DRIVER=software
 
-install: pip install -U tox
-script: tox -v
-
-_anchors:
-  - &refreshpath eval $(powershell -NonInteractive -Command 'write("export PATH=`"" + ([Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [Environment]::GetEnvironmentVariable("PATH","User")).replace("\","/").replace("C:","/c").replace(";",":") + ":`$PATH`"")')
-
-jobs:
+matrix:
+  fast_finish:
   include:
-    - stage: test
-      os: windows
-      language: shell
+    - os: linux
+      python: 2.7
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: 3.5
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: 3.6
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: 3.7
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: 3.8
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: pypy
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      python: pypy3
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+
+    - os: linux
+      arch: arm64
+      python: 3.8
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
       before_install:
-        - choco install openjdk python3
-        - *refreshpath
-        - python --version
-        - pip --version
-        - java -version
-        - pip install -U certifi
-      env: TOXENV=py3
-    - os: osx
+        - echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports xenial main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+        - echo "deb-src http://archive.ubuntu.com/ubuntu xenial main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+        - sudo dpkg --add-architecture arm64
+        - sudo apt-get -qq update
+        - sudo apt-get build-dep libsdl2 libsdl2-mixer libsdl2-ttf libsdl2-image libsdl2-gfx
+        - sudo apt-get install libmpg123-dev libopus-dev pulseaudio
+
+    - os: linux
+      arch: ppc64le
+      python: 3.8
+      sudo: required
+      env: PYSDL2_DLL_VERSION=2.0.12
+      before_install:
+        - echo "deb [arch=ppc64le] http://ports.ubuntu.com/ubuntu-ports xenial main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+        - echo "deb-src http://archive.ubuntu.com/ubuntu xenial main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+        - sudo dpkg --add-architecture ppc64le
+        - sudo apt-get -qq update
+        - sudo apt-get build-dep libsdl2 libsdl2-mixer libsdl2-ttf libsdl2-image libsdl2-gfx
+        - sudo apt-get install libmpg123-dev libopus-dev pulseaudio
+
+    - name: "Python 3.7 on macOS w/ latest SDL2"
+      os: osx
       language: shell
-      env: TOXENV=py3
-    - python: 3.5
-      env: TOXENV=py
-    - python: 3.6
-      env: TOXENV=py
-    - python: 3.7
-      env: TOXENV=py
-    - python: 3.8
-      env: TOXENV=py
-    - python: 3.5
-      env: TOXENV=lint
+      env: PYSDL2_DLL_VERSION=2.0.12
+      before_install: export PATH="/usr/local/opt/python/libexec/bin:/usr/local/bin:$PATH"
 
-    - stage: coverage
-      python: 3.5
-      env: TOXENV=cov
-      before_script: pip install -U coveralls
-      after_success: coveralls
+    - name: "Python 2.7 on macOS w/ latest SDL2"
+      os: osx
+      language: shell
+      env: PYSDL2_DLL_VERSION=2.0.12
+      before_install: brew link python@2
 
-    - stage: deploy
-      python: 3.5
-      install: skip
-      script: skip
-      deploy:
-          provider: pypi
-          user: renatahodovan
-          password:
-              secure: YX8m/eC6+BNjRZLEh85K59lBgPcvJr2Mfasq/ELL7TDnA5C0k3Klajl44QE4m7ikRoQvNQHE8+snS3kycbUCinCwu/p/woflikn63yn2UW9WHVoz020hIlfxx4XdlxU5maNP0GGi3c9hVHybBsom9EKsbNNYjT6OXME425V/KjmJy4JzHCj6KeXhmU0qDPPLFBHOSMSuB4zGCvIUIzNe72z4X7nUnS8hKsbewBKE0nI6Th95bghsDMTGxFl6qHsx+KCFsHnz5n77byra4VwfGcOjAXqgfPApMaot4Qh+LZK8rWk7oiBEcjZ7wzn6dXFZz3QRGU+5FCsj0jJe8CMGpGdSxoBlwnVOWX/DChvbFdNQE5V3nTyHMXiYxI9TNUH6Fgl6uSH+INLLAEKhPkBxhoLM8ygErJ5jjib9D2tIzI/1/60VLQ4AIPjfgsAJ5AIMqKE/fEmu3iDM73QmOVRC+maKMaP06OQ25YFb6LFvy1yqA9NQl5mO4O+NBgdZen5F5ZI7WmIn89g1BnLODHylle/JV8eAKV3Z+UrZDkzjZDoBwl9YUvRoH5w+UyZNqozBSXU0U5thdCKj0BQhgYOafs6i/8rj+29CvYqfLOV+hM27LWVmrYOuo2sYSIv3hfCHX929ogGu2voUBul9HfTh5UO/cdqjx+sd84s/gSZW9mg=
-          on:
-              repo: renatahodovan/grammarinator
-              tags: true
+    - name: "Python 3.7 on macOS w/ SDL2 2.0.10"
+      os: osx
+      language: shell
+      env: PYSDL2_DLL_VERSION=2.0.10
+      before_install: export PATH="/usr/local/opt/python/libexec/bin:/usr/local/bin:$PATH"
+
+    - name: "Python 3.7 on macOS w/ SDL2 2.0.7"
+      os: osx
+      language: shell
+      env: PYSDL2_DLL_VERSION=2.0.7
+      before_install: export PATH="/usr/local/opt/python/libexec/bin:/usr/local/bin:$PATH"
+
+    - name: "Python 3.7 on macOS w/ latest Homebrew SDL2"
+      os: osx
+      language: shell
+      before_install: 
+        - export PATH="/usr/local/opt/python/libexec/bin:/usr/local/bin:$PATH" # sets Python to 3.x
+        - brew install sdl2 sdl2_mixer sdl2_ttf sdl2_image sdl2_gfx
+
+  allow_failures:
+    - arch: arm64
+    - arch: ppc64le
+    - python: pypy
+    - python: pypy3
+    - name: "Python 3.7 on macOS w/ latest Homebrew SDL2"
+
+
+before_install:
+  # Install SDL2 build dependencies on Linux (overridden on macOS)
+  - sudo apt-get -qq update
+  - sudo apt-get build-dep libsdl2 libsdl2-mixer libsdl2-ttf libsdl2-image libsdl2-gfx
+  - sudo apt-get install libmpg123-dev libopus-dev pulseaudio
+  - dbus-launch pulseaudio --start
+  - export SDL_AUDIODRIVER=pulse # Try using pulseaudio driver for Linux CI
+
+cache:
+  # Avoids re-compiling SDL2 libraries on Linux every build
+  directories:
+    - dlls 
+    - $HOME/.cache/pip # Avoids recompiling numpy every time on PyPy
+
+install:
+  - python -m pip install --upgrade pip
+  - if [[ -z "$(ls -A dlls)" ]]; then python .ci/getsdl2.py; fi
+  - export PYSDL2_DLL_PATH=$(pwd)/dlls
+  - python -m pip install --upgrade numpy pytest
+  - python -m pip install .
+
+script:
+  - python -B -m pytest -vvl -rxXP
