@@ -1,21 +1,16 @@
----
-dist: bionic
-
 language: python
-
-# Run tests against each supported version while docs and style are only
-# considered on the latest supported version.
-matrix:
-  include:
-    - python: 3.6
-      env: TOXENV=py36
-    - python: 3.7
-      env: TOXENV=py37
-    - python: 3.8
-      env: TOXENV=py38,docs,style
+dist: Xenial
+python: "3.6"
 
 install:
-  - pip install tox
+  # Get Migen / LiteX / Cores
+  - cd ~/
+  - wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
+  - python3 litex_setup.py init install
+  # Install the version being tested
+  - cd $TRAVIS_BUILD_DIR
+  - python3 setup.py install
 
 script:
-  - tox
+  - cd $TRAVIS_BUILD_DIR
+  - python setup.py test
