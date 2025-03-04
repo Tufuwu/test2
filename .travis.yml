@@ -1,22 +1,29 @@
 language: python
-
 python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+  - "3.7"
   - "3.8"
-
+  - "3.9-dev"
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y p7zip-full
-
+  - sudo apt-get install -y graphviz python-tk python-matplotlib
 install:
-  - pip install -r requirements.txt
-
+  - travis_retry pip install Sphinx
+  - travis_retry pip install recommonmark
+  - travis_retry pip install pep8
+  - travis_retry pip install coverage
+  - travis_retry pip install coveralls
+  - travis_retry pip install numpy
 script:
-  - python pysymsrv.py
-  - python generateindex.py
-
-deploy:
-  provider: pages
-  skip_cleanup: true
-  keep_history: true
-  verbose: true
-  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  - python -Wall setup.py try
+  - python setup.py install
+  - python -Wall setup.py test
+  - COVERAGE=1 coverage run test/runtest.py
+  - python run.py --doctest
+  - python run.py --html
+after_script:
+  - pep8 --exclude=asizeof.py,metadata.py,bottle*.py --max-line-length=80 pympler
+after_success:
+  - coveralls
