@@ -1,17 +1,22 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.6"
+
 matrix:
-
   include:
+    - python: 3.7
+      dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
+      sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
 
-    - language: ruby
+install:
+  - pip install flake8 coverage codecov
 
-      rvm: 2.4.1
+script: 
+  - "flake8"
+  - "coverage run --source=pdbtools/ setup.py test"
+  - "coverage xml"
 
-      before_script: gem install awesome_bot
-
-      script: awesome_bot README.md --allow-redirect --white-list http://hacktoberfest.com/,https://hacktoberfest.com/,https://hacktoberfest.digitalocean.com/,https://github.com/search
-
-    - language: python
-
-      rvm: 3.7
-
-      script: python validate-alphabetical.py README.md
+after_success:
+  - "codecov --file coverage.xml -X pycov -X gcov"
