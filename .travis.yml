@@ -1,35 +1,29 @@
+dist: xenial
+
 language: python
-dist: focal
+
+sudo: false
+
+git:
+  depth: 1
+  quiet: true
+
 cache: pip
-env:
-  - PYTHONHASHSEED=0
-install:
-  - make travis-setup
+
 python:
-  - "3.6"
-  - "3.7"
   - "3.8"
   - "3.9"
-script:
-  - make ci
+  - "3.10-dev"
 
-jobs:
-  include:
-    - stage: test-pypy
-      dist: focal
-      python: "pypy3"
-      # typed-ast installation fails under pypy3.6-7.3.1 (currently in Travis CI);
-      # So, installing only pytest and pytest-xdist that don't rely on typed-ast
-      # https://github.com/python/typed_ast/issues/97
-      install:
-        - pip install termcolor==1.1.0 pytest==6.2.4 pytest-xdist==2.3.0 dataclasses==0.8
-      script:
-        - py.test -n auto
-    - stage: coverage
-      dist: focal
-      python:
-        - "3.9"
-      script:
-        - make coverage
-      after_success:
-        - bash <(curl -s https://codecov.io/bash)
+install:
+  - 'pip install tox-travis pyyaml python-coveralls'
+
+script: tox
+
+notifications:
+    slack:
+      rooms:
+        - pivotalenergy:SvNSkVaLVlZeu82utL37wSvy#travis
+
+after_success:
+  - coveralls
