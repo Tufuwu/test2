@@ -1,18 +1,19 @@
+# -*- coding: utf-8 -*-
+#
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+
+os: linux
+dist: bionic
+sudo: false
 language: python
+cache: pip
 
 python:
-  - 3.6
-  - 3.7
-  - 3.8
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
 
-install:
-  - pip install -q coverage
-  - pip install -q coveralls
-  - pip install -q mock
-  - pip install .
-
-before_script: cd tests
-
-script: make coverage
-
-after_script: coveralls --rc=coveragerc
+install: pip install tox-travis
+script: tox
