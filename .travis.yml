@@ -1,17 +1,18 @@
-language: shell
-
-os: windows
-
-env:
-  - PYTHON_VERSION="3.5.1" PATH=/c/Python35:/c/Python35/Scripts:$PATH
-  - PYTHON_VERSION="3.6.1" PATH=/c/Python36:/c/Python36/Scripts:$PATH
-  - PYTHON_VERSION="3.7.1" PATH=/c/Python37:/c/Python37/Scripts:$PATH
-
-before_install:
-  - choco install python --version $PYTHON_VERSION
-
+language: python
+sudo: false
+dist: xenial
+python:
+- 3.6
+- 3.7
+- 3.8
 install:
-  - python -m pip install --user --upgrade pip setuptools
-  - python -m pip install --user -e .[dev]
-
-script: python -m pytest tests
+- pip install -e .[testing]
+script: pytest tests
+deploy:
+  provider: pypi
+  user: vmalloc
+  password:
+    secure: IiRY8I5mIBebKxMUNygddVLyyd0j9gRG5hly5r07nIeqqB01cUhrHgTnfqQPBbVYsDzFYRNM4p2+D94YlsRyO/ylGXehNpA/Dmb5tVDLtycbQVBx4rkRwEa0nfcXaF3MO1P0NHbEi3scVhLiaYqTGWsEKGIhUrgWyckuAh99FKo=
+  on:
+    tags: true
+    repo: getslash/flux
