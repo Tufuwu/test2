@@ -1,46 +1,74 @@
+dist: xenial
 language: python
 
-python:
-  - "3.6"
+cache:
+  directories:
+  - cldr
+  - "$HOME/.cache/pip"
+  - "$HOME/.pyenv"
 
+matrix:
+  include:
+    - os: linux
+      python: 2.7
+      env:
+      - PYTEST_VERSION=4.3.1
+    - os: linux
+      python: 2.7
+      env:
+      - CDECIMAL=m3-cdecimal
+      - PYTEST_VERSION=4.3.1
+    - os: linux
+      dist: trusty
+      python: pypy
+      env:
+      - PYTEST_VERSION=4.3.1
+    - os: linux
+      dist: trusty
+      python: pypy3
+      env:
+      - PYTEST_VERSION=6.1.2
+    - os: linux
+      python: 3.4
+      env:
+      - PYTEST_VERSION=4.3.1
+    - os: linux
+      python: 3.5
+      env:
+      - PYTHON_TEST_FLAGS=-bb
+      - PYTEST_VERSION=6.1.2
+    - os: linux
+      python: 3.6
+      env:
+      - PYTEST_VERSION=6.1.2
+    - os: linux
+      python: 3.7
+      env:
+      - PYTEST_VERSION=6.1.2
+    - os: linux
+      python: 3.8
+      env:
+      - PYTEST_VERSION=6.1.2
+    - os: linux
+      python: 3.9
+      env:
+      - PYTEST_VERSION=6.1.2
 install:
-  - pip install -r dev-requirements.txt
-  - pip install -r requirements.txt
+  - bash .ci/deps.${TRAVIS_OS_NAME}.sh
+  - pip install --upgrade pip
+  - pip install --upgrade $CDECIMAL pytest==$PYTEST_VERSION pytest-cov freezegun==0.3.12 'backports.zoneinfo;python_version>="3.6" and python_version<"3.9"'
+  - pip install --editable .
 
 script:
-  - python -m pytest --cov=. tests/
+  - make test-cov
+  - bash .ci/deploy.${TRAVIS_OS_NAME}.sh
 
-after_success:
-  - coverage report
-  - coveralls
-
-jobs:
-  include:
-  - stage: test
-  - stage: deploy
-    if: branch = master AND (NOT type IN (pull_request))
-    before_install:
-    - nvm install lts/* --latest-npm
-    python:
-    - "3.6"
-    install:
-    - pip install -r dev-requirements.txt
-    - pip install -r requirements.txt
-    - npm install @semantic-release/exec
-    script:
-    - git config --global user.email "releases@ladybug.tools"
-    - git config --global user.name "ladybugbot"
-    - npx semantic-release
-  - stage: docs
-    if: branch = master AND (NOT type IN (pull_request))
-    script:
-    - sphinx-apidoc -f -e -d 4 -o ./docs ./ladybug_pandas
-    - sphinx-build -b html ./docs ./docs/_build/docs
-    deploy:
-      provider: pages
-      skip_cleanup: true
-      github-token: $GH_TOKEN
-      keep-history: false
-      local_dir: docs/_build/
-      on:
-        branch: master
+notifications:
+  email: false
+  irc:
+    channels:
+      - "chat.freenode.net#pocoo"
+    on_success: change
+    on_failure: always
+    use_notice: true
+    skip_join: true
