@@ -1,36 +1,73 @@
-language: python
-os: linux
+sudo: false
 dist: bionic
-cache: pip
+
+language: python
+
 python:
-  - 2.7
-  - 3.5
-  - 3.6
-  - 3.7
-  - pypy3
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
 env:
-  - FLAVOUR=signxml
-jobs:
-  include:
-  - python: 2.7
-    env: FLAVOUR=legacy
-  - python: 2.7
-    env: FLAVOUR=legacy-defusedxml
-  - python: 2.7
-    env: FLAVOUR=lxml
-  - python: 2.7
-    env: FLAVOUR=lxml-defusedxml
-  - python: 3.6
-    env: FLAVOUR=legacy
-  - python: 3.6
-    env: FLAVOUR=legacy-defusedxml
-  - python: 3.6
-    env: FLAVOUR=lxml
-  - python: 3.6
-    env: FLAVOUR=lxml-defusedxml
-  - python: 3.6
-    env: TOXENV=flake8
-  - python: 3.6
-    env: TOXENV=docs
-install: pip install tox
-script: tox -e "${TOXENV:-$(echo py${TRAVIS_PYTHON_VERSION}-${FLAVOUR} | tr -d . | sed -e 's/pypypy/pypy/')}" --skip-missing-interpreters false
+  - MODE=flake8
+  - MODE=flake8-strict
+  - MODE=docs
+  - DJANGO_VERSION=dj22
+  - DJANGO_VERSION=dj30
+  - DJANGO_VERSION=dj31
+  - DJANGO_VERSION=dj32
+  - DJANGO_VERSION=djdev
+
+matrix:
+  allow_failures:
+    - env: DJANGO_VERSION=djdev
+    - env: MODE=flake8-strict
+  exclude:
+    - python: "3.5"
+      env: MODE=flake8
+    - python: "3.5"
+      env: MODE=flake8-strict
+    - python: "3.5"
+      env: MODE=flake8-docs
+    - python: "3.5"
+      env: DJANGO_VERSION=dj30
+    - python: "3.5"
+      env: DJANGO_VERSION=dj31
+    - python: "3.5"
+      env: DJANGO_VERSION=dj32
+    - python: "3.5"
+      env: DJANGO_VERSION=djdev
+
+before_install:
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 762E3157
+  
+addons:
+  apt:
+    packages:
+    - binutils
+    - libproj-dev
+    - gdal-bin
+    - libsqlite3-mod-spatialite
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
+# command to install dependencies
+install:
+  - pip install -U pip
+  - pip install -U wheel virtualenv
+  - pip install tox coveralls
+  
+after_success:
+    - coveralls
+
+# command to run tests
+script:
+    - apt list --installed
+    - coverage erase
+    - tox -e py${TRAVIS_PYTHON_VERSION/./}-${DJANGO_VERSION}${MODE}
