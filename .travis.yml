@@ -1,10 +1,15 @@
-language: python
-python:
-    - 2.7
-    - 3.6
-    - 3.7
-    - 3.8
+dist: xenial
+
+langauge: python
+
+python: "3.6"
+
+before_install:
+  - sudo apt-get update
+
 install:
-    - pip install -r requirements-dev.txt
-script:
-    - python test_duo_openvpn.py
+  - sudo apt install python3-pip
+  - sudo pip3 install -r test-requirements.txt
+  - sudo pip3 install tox
+
+script: tox .
