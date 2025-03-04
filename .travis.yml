@@ -1,24 +1,14 @@
-sudo: required
+---
+os: linux
+dist: xenial
+language: python
+python: "3.6"
 
-services:
-  - docker
+cache: pip
 
-before_install:
-  - python .ci/check_travis_tag.py
-  - docker build -t aiida_cp2k_test .
-  - export DOCKERID=`docker run -d aiida_cp2k_test`
+install: pip install idr-utils/
 
 script:
-  - docker exec --tty $DOCKERID wait-for-services
-  - docker exec -it --user aiida $DOCKERID /bin/bash -l -c 'cd /opt/aiida-cp2k/ && pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )'
-  - docker exec -it --user aiida $DOCKERID /bin/bash -l -c 'cd /opt/aiida-cp2k/ && py.test --cov aiida_cp2k --cov-append .'
-  - docker exec -it --user aiida $DOCKERID /bin/bash -l -c 'cd /opt/aiida-cp2k/docs && make'
-
-after_success:
-  - docker exec -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID -e TRAVIS_BRANCH=$TRAVIS_BRANCH -it --user aiida $DOCKERID /bin/bash -l -c 'cd /opt/aiida-cp2k/ && coveralls'
-
-after_script:
-  - docker logs $DOCKERID
-
-git:
-  depth: 3
+  - find idr* -type f -name '*.screen' -print0 | xargs -0 -n1 python idr-utils/scripts/check_screen.py -v
+  - find . -type f -name '*study.txt' | sort | xargs python idr-utils/pyidr/study_parser.py -v
+  - python idr-utils/scripts/travis-check.py
