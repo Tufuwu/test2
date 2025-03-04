@@ -1,53 +1,36 @@
-# config file for automatic testing at travis-ci.org
 language: python
-cache: pip
-
-before_install:
-    - sudo apt-get install -y python3-dev
-
-install:
-  - pip install --upgrade pip setuptools
-  - pip install virtualenv tox wheel
-  - tox --version
-
-stages:
-    - check
-    - test
-
-script: tox -v
+sudo: false
 
 matrix:
   include:
-  - stage: check
-    python: 3.6
-    env: TOXENV=checks
+    # "Recommended" environments: More recent versions, for Py2 and Py3.
+    - python: "3.5"
+      env: DEPS="numpy"
+    - python: "3.6"
+      env: DEPS="numpy"
+    - python: "3.7"
+      env: DEPS="numpy"
+    - python: "3.7"
+      env: DEPS="numpy pandas"
+    - python: "3.8"
+      env: DEPS="numpy"
+    - python: "3.8"
+      env: DEPS="numpy pandas"
+    - python: "3.9"
+      env: DEPS="numpy"
+    - python: "3.9"
+      env: DEPS="numpy pandas"
+    - python: "pypy3"
+      env: DEPS="numpy"
+#dist: bionic
 
-  - stage: test
-    dist: xenial
-    python: "3.6"
-    env: TOXENV=py36
+install:
+  - travis_retry pip install --upgrade pip setuptools wheel
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then travis_retry pip install --only-binary=numpy,scipy $DEPS; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then travis_retry pip install $DEPS; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then travis_retry pip install nose; fi
+  - travis_retry python setup.py install
 
-  - stage: test
-    dist: xenial
-    python: "3.7"
-    env: TOXENV=py37
-
-  - stage: test
-    dist: xenial
-    python: "3.8"
-    env: TOXENV=py38
-
-  - stage: test
-    dist: bionic
-    python: "3.9-dev"
-    env: TOXENV=py39
-
-  - stage: test
-    dist: bionic
-    python: "nightly"
-    env: TOXENV=py310
-
-
-jobs:
-  allow_failures:
-    - python: "nightly"
+script:
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then nosetests --nologcapture; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then python -mnose; fi
