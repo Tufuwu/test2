@@ -1,19 +1,23 @@
-language: python
+# Run tests with Travis CI
 
-jobs:
-  include:
-    - python: "3.6"
-    - python: "3.7"
-    - python: "3.8"
-    - python: "3.9"
-    - python: "nightly"
-  allow_failures:
-    - python: "nightly"
+language: python
+dist: xenial
+
+python:
+  - '3.7'
+
+before_install:
+  - export DJANGO_SETTINGS_MODULE=backend.settings_test
+  - export PIP_USE_MIRRORS=true
+  - export PIPENV_VENV_IN_PROJECT=true
 
 install:
   - pip install pipenv
-  - pipenv install --dev
+  - pipenv sync
 
 script:
-  - pipenv run lint
-  - pipenv run test
+  - pipenv run python manage.py test -v2
+
+cache:
+  directories:
+    - '.venv'
