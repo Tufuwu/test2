@@ -1,12 +1,19 @@
+dist: focal
 language: python
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
-  - "3.8.5"
+  - "3.8"
+  - "3.9"
+addons:
+  apt:
+    packages:
+      - graphviz
+      - libgraphviz-dev
 install:
-  - pip3 install -e .[dev]
-  - pip3 install coveralls
+  - pip install tox-travis codecov
 script:
-  - python3 precommit.py
-  - coveralls
+  - tox
+
+after_success:
+  - codecov
