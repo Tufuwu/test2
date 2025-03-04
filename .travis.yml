@@ -1,42 +1,112 @@
+sudo: false
 language: python
-cache: pip
 
-# Python targets, as defined by https://github.com/travis-ci/travis-build/blob
-# /master/spec/build/script/python_spec.rb and https://github.com/travis-ci
-# /travis-build/blob/master/lib/travis/build/script/python.rb
-python:
-  # Standard release https://docs.travis-ci.com/user/languages
-  # /python#choosing-python-versions-to-test-against
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
+services:
+  - docker
 
-  # PyPy2.7: https://doc.pypy.org/en/latest
-  # /index-of-release-notes.html#cpython-2-7-compatible-versions
-  - pypy
+before_install:
+    # start rabbitmq, grab client ssl certs
+    - docker run -d --rm -p 15672:15672 -p 5672:5672 -p 5671:5671 --name nameko-rabbitmq nameko/nameko-rabbitmq:3.6.6
+    - docker cp nameko-rabbitmq:/srv/ssl certs
+    # install toxiproxy
+    - mkdir $PWD/bin
+    - wget -O $PWD/bin/toxiproxy-server https://github.com/Shopify/toxiproxy/releases/download/v2.0.0/toxiproxy-server-linux-amd64
+    - chmod +x $PWD/bin/toxiproxy-server
+    - export PATH=$PATH:$PWD/bin/
+    # work around https://github.com/travis-ci/travis-ci/issues/7940
+    - sudo rm -f /etc/boto.cfg
 
-  # PyPy3.5: https://doc.pypy.org/en/latest
-  # /index-of-release-notes.html#cpython-3-3-compatible-versions
-  - pypy3
+addons:
+  apt_packages:
+    - libenchant-dev
+
+install:
+  - pip install tox
+
+cache:
+  directories:
+    - $HOME/.cache/pip
 
 matrix:
   include:
-    - python: 2.6
-      dist: trusty
-    - python: 3.7
-      dist: xenial     # required for Python 3.7 (travis-ci/travis-ci#9069)
-    - python: 3.8
-      dist: xenial     # required for Python 3.8 (travis-ci/travis-ci#9069)
-    - python: 3.9
-      dist: focal
-    - python: nightly
-      dist: focal
+    - stage: static
+      python: 2.7
+      env: TOX_ENV=py27-static
+    - stage: static
+      python: 3.6
+      env: TOX_ENV=py36-static
+    - stage: docs
+      python: 3.6
+      env: TOX_ENV=docs
+    - stage: examples
+      python: 2.7
+      env: TOX_ENV=py27-examples
+    - stage: examples
+      python: 3.6
+      env: TOX_ENV=py36-examples
+    - stage: test
+      python: 2.7
+      env: TOX_ENV=py27-oldest-lib
+    - stage: test
+      python: 2.7
+      env: TOX_ENV=py27-pinned-lib
+    - stage: test
+      python: 2.7
+      env: TOX_ENV=py27-latest-lib
+    - stage: test
+      python: 2.7
+      env: TOX_ENV=py27-extra-lib
+    - stage: test
+      python: 3.5
+      env: TOX_ENV=py35-oldest-lib
+    - stage: test
+      python: 3.5
+      env: TOX_ENV=py35-pinned-lib
+    - stage: test
+      python: 3.5
+      env: TOX_ENV=py35-latest-lib
+    - stage: test
+      python: 3.6
+      env: TOX_ENV=py36-oldest-lib
+    - stage: test
+      python: 3.6
+      env: TOX_ENV=py36-pinned-lib
+    - stage: test
+      python: 3.6
+      env: TOX_ENV=py36-latest-lib
+    - stage: test
+      python: 3.6
+      env: TOX_ENV=py36-extra-lib
+    - stage: deploy
+      script: skip
+      deploy:
+        provider: pypi
+        user: onefinestay
+        password:
+          secure: Mwinp9cxGaGe/KjGFcO+T7MAgLvy5yFNeYCq9zpGniuSXsp/AFH3JIS1kWBv71tMC8S2N5kwRMVXoHNMqJt+Iq/EmYIY6vbMK8GijAUqLo8KsbxgmigWTXTn6IHKDO4gwYmQt8BDYJmbq6CNeVVCHMxWyP0Y24S25y7N35oIroU=
+        on:
+          tags: true
+          repo: nameko/nameko
+        distributions: "sdist bdist_wheel"
+    - stage: mastereventlet
+      python: 2.7
+      env: TOX_ENV=py27-mastereventlet
+    - stage: mastereventlet
+      python: 3.5
+      env: TOX_ENV=py35-mastereventlet
+    - stage: mastereventlet
+      python: 3.6
+      env: TOX_ENV=py36-mastereventlet
+    - stage: branchcoverage
+      python: 3.6
+      env: TOX_ENV=py36-branchcoverage-lib
+  fast_finish: true
   allow_failures:
-    - python: nightly
+    - env: TOX_ENV=py27-mastereventlet
+    - env: TOX_ENV=py35-mastereventlet
+    - env: TOX_ENV=py36-mastereventlet
+    - env: TOX_ENV=py36-branchcoverage-lib
 
-install: "pip install -r requirements-test.txt"
-script: "py.test --doctest-modules boltons tests"
-branches:
-  except:
-    - function_builder
+script:
+  - tox -e $TOX_ENV
+
