@@ -1,17 +1,17 @@
 language: python
-python:
-  - 2.7
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
-  - nightly
 
-matrix:
-  allow_failures:
-    - python: 3.5, nightly
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
 install:
-  - pip install six yapf
+  - pip install pytest==5.4.3 pytest-cov coveralls
+  - pip install -r requirements.txt
+  - pip install .[all]
+
 script:
-  - python test/run_all.py
-  - yapf --diff --recursive .
+  - pytest --cov=pvanalytics --cov-config=.coveragerc --cov-report term-missing pvanalytics --runslow
+
+after_success:
+  - coveralls
