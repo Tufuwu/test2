@@ -1,34 +1,15 @@
----
 language: python
-cache: pip
-dist: xenial
 python:
-  - '3.6'
-  - '3.7'
-  - '3.8'
-env:
-  matrix:
-    - TOXENV=docs
-    - DJANGO=111
-    - DJANGO=22
-    - DJANGO=30
-    - DJANGO=31
-    - DJANGO=master
-services:
-  - redis
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: DJANGO=master
+  - "3.6"
+  - "3.7"
+  - "3.8"
 install:
-  - pip install --upgrade codecov tox
-before_script:
-  - |
-    if [[ -z $TOXENV ]]; then
-      export TOXENV=py$(echo $TRAVIS_PYTHON_VERSION | sed -e 's/\.//g')-dj$DJANGO
-    fi
-  - echo $TOXENV
+  - pip install --upgrade pip setuptools tox twine
 script:
-  - tox -e $TOXENV
-after_success:
-  - codecov
+  - tox --recreate
+  - git diff --exit-code
+jobs:
+  include:
+    - stage: publish
+      if: type = push AND branch = master AND repo = Zac-HD/hypothesis-jsonschema
+      script: python setup.py sdist bdist_wheel && twine upload --skip-existing dist/*
