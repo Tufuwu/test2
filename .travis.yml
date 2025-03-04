@@ -1,10 +1,27 @@
-#!/bin/sh
+language: python
 
-set -ex
+python:
+  - '2.7'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+  - '3.8'
 
-flake8 .
-isort -l 100 --check --diff .
-black --check --diff .
+os: linux
 
-# test that we can parse implementations.json
-python implementations.py
+env:
+  PYTHONPATH: :test
+  PYTHONIOENCODING: utf-8
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - make check-pylint
+  - make check-tox
+  - make check-translations
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
+  - make test
+
+after_success:
+  - codecov
