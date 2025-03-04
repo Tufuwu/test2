@@ -1,21 +1,27 @@
-dist: trusty
 language: python
-cache: pip
+
 python:
-  - "2.7"
-services:
-  - memcached
+  - '2.7'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+  - '3.8'
+
+os: linux
+
 env:
-  global:
-    - DJANGO_SETTINGS_MODULE=esp.settings
-  matrix:
-    - TRAVIS_JOB="lint"
-    - TRAVIS_JOB="test"
-before_install:
-  - deploy/travis/before_install
+  PYTHONPATH: :test
+  PYTHONIOENCODING: utf-8
+
 install:
-  - deploy/travis/install
-before_script:
-  - deploy/travis/before_script
+  - pip install -r requirements.txt
+
 script:
-  - deploy/travis/script
+  - make check-pylint
+  - make check-tox
+  - make check-translations
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
+  - make test
+
+after_success:
+  - codecov
