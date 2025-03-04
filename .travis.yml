@@ -1,17 +1,20 @@
----
-language: "python"
-matrix:
-  include:
-    - python: "3.7"
-      dist: xenial
-      sudo: true
-    - python: "3.6"
-    - python: "3.5"
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "nightly"
+  - "pypy3"
+  - "pypy"
+
 install:
-  - pip install .
-  - pip install -r requirements_dev.txt
-  - pip install coveralls
+  - pip install -r requirements-test.txt
+
 script:
-  - pytest -vv --cov=protontricks --cov-report term --cov-report xml tests
-after_success:
-  - coveralls
+  - python -m unittest discover -s tests
+  - coverage run run_tests.py && coverage report -m
+
+notifications:
+  email: false
