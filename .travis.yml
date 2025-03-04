@@ -1,41 +1,17 @@
-language: python
+language: shell
 
-python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
+os: windows
 
 env:
-  - DJANGO=1.9
-  - DJANGO=1.10
-  - DJANGO=1.11.17
-  - DJANGO=2.0
-  - DJANGO=2.2
-  - DJANGO=3.1
-  - DJANGO=3.2
+  - PYTHON_VERSION="3.5.1" PATH=/c/Python35:/c/Python35/Scripts:$PATH
+  - PYTHON_VERSION="3.6.1" PATH=/c/Python36:/c/Python36/Scripts:$PATH
+  - PYTHON_VERSION="3.7.1" PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
-matrix:
-  exclude:
-    - env: DJANGO=2.0
-      python: "2.7"
-    - env: DJANGO=2.2
-      python: "2.7"
-    - env: DJANGO=3.1
-      python: "2.7"
-    - env: DJANGO=3.2
-      python: "2.7"
-    - env: DJANGO=1.9
-      python: "3.8"
-    - env: DJANGO=1.10
-      python: "3.8"
-    - env: DJANGO=1.9
-      python: "3.9"
-    - env: DJANGO=1.10
-      python: "3.9"
+before_install:
+  - choco install python --version $PYTHON_VERSION
 
 install:
-  - pip install Django==$DJANGO
+  - python -m pip install --user --upgrade pip setuptools
+  - python -m pip install --user -e .[dev]
 
-script: python test_manage.py test
+script: python -m pytest tests
