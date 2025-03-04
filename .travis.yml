@@ -1,27 +1,24 @@
-language: python
+name: Prepare deploy
 
-python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
-  - '3.8'
+on:
+  push:
+    branches:
+      - master
 
-os: linux
-
-env:
-  PYTHONPATH: :test
-  PYTHONIOENCODING: utf-8
-
-install:
-  - pip install -r requirements.txt
-
-script:
-  - make check-pylint
-  - make check-tox
-  - make check-translations
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
-  - make test
-
-after_success:
-  - codecov
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup Enviroment
+        run: cp .env.example .env
+      - name: Builds the stack
+        run: docker-compose build
+      - name: Test
+        run: docker-compose run web ./manage.py test
+      - name: Create Coverage
+        run: docker-compose run web coverage run --source='.' manage.py test
+      - name: Upload coverage
+        run: docker-compose run web coveralls
+        env:
+          repo_token: ${{ secrets.repo_token }}
