@@ -1,31 +1,29 @@
 language: python
-python:
-# Work-around for Python 3.7 on Travis CI pulled from here:
-# https://github.com/travis-ci/travis-ci/issues/9815#issue-336465122
-matrix:
-  include:
-    - python: "3.6"
-      dist: "xenial"
-      sudo: true
-    - python: "3.7"
-      dist: "xenial"
-      sudo: true
-    - python: "3.8"
-      dist: "xenial"
-      sudo: true
-    - python: "3.9"
-      dist: "xenial"
-      sudo: true
-install:
-  - "pip install -r requirements/maintainer.pip"
-  # Fix for PyInstaller: https://stackoverflow.com/q/61574984/
-  - "pip install setuptools==49.2.1"
-script:
-  - "pytest"
-addons:
-  artifacts:
-    paths:
-      - '$(ls -1 dist/*.zip | tr "\n" ":")'
-  s3_region: "us-east-1"
+
 notifications:
   email: false
+  
+python:
+    - 3.6
+    - 3.7
+    - 3.8
+  
+before_install:
+    - pip install pep8 flake8 black==19.10b0 mypy
+  
+before_script:
+    - flake8 --show-source --ignore=F811,W293,W391,W292,W291,E252,W503,E203 --max-line-length=79 --exclude='conf.py,__init__.py';
+    - black . --check -l 79;
+    - mypy efficient_apriori/*.py --ignore-missing-imports --show-error-context;
+
+script:
+    - pip install -r requirements.txt
+    - pip install pytest
+    - pip install .
+    - pytest --doctest-modules -v efficient_apriori
+    - # If 'TRAVIS_PULL_REQUEST_BRANCH' is empty and we're on master, then deploy
+    - if [[ -z "$TRAVIS_PULL_REQUEST_BRANCH" && "$TRAVIS_PULL_REQUEST" == 'false' && "$TRAVIS_BRANCH" == 'master' ]]; then
+      pip install twine;
+      python setup.py sdist bdist_wheel;
+      python -m twine upload dist/* -u tommyod -p $TWINE --skip-existing;
+      fi
