@@ -1,32 +1,42 @@
+dist: bionic
 language: python
-python:
-  - 2.7.15
-  - 3.7
-cache:
-  pip: true
-  directories:
-    - $HOME/buildout-cache
-env:
-  - PLONE_VERSION=4.3.x
-  - PLONE_VERSION=5.1.x
-  - PLONE_VERSION=5.2.x
+
 jobs:
-  exclude:
-    - python: 3.7
-      env: PLONE_VERSION=4.3.x
-    - python: 3.7
-      env: PLONE_VERSION=5.1.x
-before_install:
-  - mkdir -p $HOME/buildout-cache/{eggs,downloads}
-  - pip install -r requirements.txt
+  include:
+  - python: "3.8"
+    env: DATABASE_URL='mysql://travis:@127.0.0.1:3306/test_atomdb'
+  - python: "3.9"
+    env: DATABASE_URL='mysql://travis:@127.0.0.1:3306/test_atomdb'
+  - python: "3.10"
+    env: DATABASE_URL='mysql://travis:@127.0.0.1:3306/test_atomdb'
+  - python: "3.8"
+    env: DATABASE_URL='postgres://postgres:@127.0.0.1:5432/test_atomdb'
+  - python: "3.9"
+    env: DATABASE_URL='postgres://postgres:@127.0.0.1:5432/test_atomdb'
+  - python: "3.10"
+    env: DATABASE_URL='postgres://postgres:@127.0.0.1:5432/test_atomdb'
+
+services:
+  - mongodb
+  - mysql
+  - postgresql
+
 install:
-  - sed -ie "s#plone-x.x.x.cfg#plone-$PLONE_VERSION.cfg#" travis.cfg
-  - buildout -N -t 3 -c travis.cfg
+  # Setup
+  - pip install -U atom motor aiomysql aiopg
+  - pip install -U 'sqlalchemy<1.4'
+
+  # Testing
+  - pip install -U codecov pytest pytest-coverage pytest-asyncio faker mypy isort black
+
+  # Install
+  - python setup.py develop
+
 script:
-  - if [ -f "bin/black" ]; then bin/black src/ --check ; fi
-  - bin/code-analysis
-  - bin/test
-  - bin/test-coverage
+  - pytest -v tests --cov atomdb --cov-report xml
+  - mypy atomdb --ignore-missing-imports
+  - black atomdb --check --diff
+  - isort atomdb --check --diff
+
 after_success:
-  - pip install -q coveralls
-  - coveralls
+  - codecov
