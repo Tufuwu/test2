@@ -1,26 +1,15 @@
-os: linux
-dist: bionic
 language: python
+dist: xenial
+sudo: required
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
 
-jobs:
-  include:
-    - name: "MTGJSON5 Tox - Python 3.6"
-      before_install:
-        - "pip install -U pip setuptools wheel tox-travis"
-      install: "pip install -r requirements_test.txt"
-      script: tox
-      python: "3.6"
+before_install:
+  - sudo apt-get install -y libxml2-dev libglib2.0-dev libjson-glib-dev
 
-    - name: "MTGJSON5 Tox - Python 3.7"
-      before_install:
-        - "pip install -U pip setuptools wheel tox-travis"
-      install: "pip install -r requirements_test.txt"
-      script: tox
-      python: "3.7"
+install: "python3 setup.py develop"
 
-    - name: "MTGJSON5 Tox - Python 3.8"
-      before_install:
-        - "pip install -U pip setuptools wheel tox-travis"
-      install: "pip install -r requirements_test.txt"
-      script: tox
-      python: "3.8"
+# command to run tests
+script: python -m unittest
