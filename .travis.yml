@@ -1,35 +1,23 @@
-dist: jammy
-
+branches:
+  only:
+    - master
 language: python
 python:
+  - "3.6"
+  - "3.7"
   - "3.8"
   - "3.9"
-  - "3.10"
-  - "3.11"
-
-cache:
-  pip: true
-  directories:
-    - ${VIRTUAL_ENV}
-
-before_install:
-  - curl -sSL https://install.python-poetry.org | python3 -
-  - make doctor
-
-install:
-  - make install
-
-script:
-  - make test-repeat
-  - make check
-  - make notebooks
-  - make mkdocs
-
+install: 
+  - pip install tox-travis
+  - pip install codecov
+matrix:
+  include:
+    - python: 3.8
+      env: TOXENV=lint
+    - python: 3.8
+      env: TOXENV=docs
+    - python: 3.8
+      env: TOXENV=isort
+script: tox
 after_success:
-  - pip install coveralls
-  - coveralls
-
-notifications:
-  email:
-    on_success: never
-    on_failure: never
+  - codecov
