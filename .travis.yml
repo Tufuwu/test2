@@ -1,27 +1,38 @@
+---
+sudo: false
+dist: xenial
 language: python
+cache: pip
 
-python:
-   - "3.6"
+matrix:
+  fast_finish: true
+  include:
+    # https://docs.djangoproject.com/en/dev/faq/install/#what-python-version-can-i-use-with-django
+    - {env: DJANGO=2.2, python: '3.5'}
+    - {env: DJANGO=2.2, python: '3.6'}
+    - {env: DJANGO=2.2, python: '3.7'}
+    - {env: DJANGO=2.2, python: '3.8'}
+    - {env: DJANGO=2.2, python: 'nightly'}
 
-services:
-  - xvfb
+    - {env: DJANGO=3.0, python: '3.6'}
+    - {env: DJANGO=3.0, python: '3.7'}
+    - {env: DJANGO=3.0, python: '3.8'}
+    - {env: DJANGO=3.0, python: 'nightly'}
+
+    - {env: DJANGO=master, python: '3.6'}
+    - {env: DJANGO=master, python: '3.7'}
+    - {env: DJANGO=master, python: '3.8'}
+    - {env: DJANGO=master, python: 'nightly'}
+
+    - {python: '3.7', env: TOXENV=docs}
+    - {python: '3.7', env: TOXENV=quality}
+
+  allow_failures:
+    - python: 'nightly'
+    - env: DJANGO=master
 
 install:
-   - pip install coverage
-   - pip install coveralls
-   - pip install flake8
-   - pip install nose
-   - pip install -r requirements.txt
-
-# for production, remove the --exit-zero
-# this side-steps failing build on PEP8 violations
-before_script:
-   - "export DISPLAY=:99.0"
-   - flake8 impedance --exclude=*.ipynb_checkpoints
+  - travis_retry pip install tox tox-travis
 
 script:
-   - pytest --cov=impedance impedance/tests
-
-after_success:
-   - coverage report
-   - coveralls
+  - tox
