@@ -1,20 +1,26 @@
 language: python
 python:
-  - "3.7"
-  - "3.8"
-  - "3.9"
-
-install: "pip install -r requirements.txt"
-
+- '2.7'
 script:
-  - pytest
+- ./unrpyc.py --clobber testcases/script.rpyc
+- diff -u testcases/script.orig.rpy testcases/script.rpy
+- cd un.rpyc
+- "./compile.py -p 1"
+- cd ..
+before_deploy: "./make-bintray-json.sh"
 deploy:
-  provider: pypi
-  username: "__token__"
-  password:
-    secure: "kXUn0Q7WfMbzM27gdjzRuCbEMdr3V5YqhmCir6R55DDoqkWW7CsKy5n6VlWjvRzfm0mfcUkRGBSnvvAMXjfhruM116uH2lsSw7B5ew4tv4mMZ7LAF85PSybVoprwmql8eVbwUasMpnKCV1liT9+x9Ldw2TFfqy3bJOQA4VgHjZfqiDLKGlSxq1pZDUHSeSouHClH65UWPKmXcTAa+zgBBo6rZdXk1pF6TL/n3DYzFEgI2PA3VNFCJX8pDur6f2lBK0s2soYa3uRFxI7fMd+/2A9cPCfwFANu/7EAey/CRmvu45fIpwHG9ddY1ycxEKrV/hKXD8sU79/CsYNFAHMu+2rOQ00WBO425QEeRCaQz1gN9zLZlmba3+4S1Ng0XJejHHJquWJqcoX1SN+ydCrDetTItwt/qGmFLoCpUJJD13kjgddFjY3CS5dnresvHJWz9v/QPVI2mHztd51P1/ozCImYkXWWq+OZG7O9dbJeQtA4J/p7eJpDnwyMfuNgfEV2TOiXd4FfmRVw08wdUG7GJEUkLu6/j40PACQB6AXZs2+5Q/NokZ+pDHdj/lhY9xX/t7LUFZZkRNr+GKAI/qXxoX+k6hfJAlEuLmAaFQHMi+p/574VCF1Tn7P++P20dp89WlwG70//W7EsPNC45UC86425ALZ76Unm0HRy7QdNo+Q="
-  distributions: sdist bdist_wheel
-  edge: true
+- skip_cleanup: true
   on:
-    python: 3.7
+    all_branches: true
+  provider: bintray
+  file: bintray.json
+  user: jackmcbarn
+  key:
+    secure: g9uz4gG8Dmb9cTG4hNNmuzQvKON00NTON2lOfQH6HbYkFYySwCJ76Kq1D11d7luav2s/bPytuNSrIUCTwGZf64eMGDuZbbpFR4dGEIuxYmSKbCqTL9getd5EapwxffQPoridG/SZGOBRLgI+zw0XRlNMDfBJQxp+B8Zs7u7+xMg=
+- skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: FLqsPJrAsLll9RwvQf6Ozw7fqD/cPizeN6CH+apTs/ttEwisD3eB7vlEswfgsFGNFiWQ62z3e31ute2fQ4AnksaQ6PJU3USg4I84fxTfq2euuCRF7gGF93eioN0I0/G6wfOXeTz2skRvW5PcEh1egM8SoGWu1W8V+OQT73vZpNE=
+  file: un.rpyc/un.rpyc
+  on:
     tags: true
