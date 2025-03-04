@@ -1,73 +1,48 @@
 sudo: false
-dist: bionic
 
 language: python
 
 python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
+- '3.8'
+- '3.7'
+- '3.6'
+- '3.5'
 
 env:
-  - MODE=flake8
-  - MODE=flake8-strict
-  - MODE=docs
-  - DJANGO_VERSION=dj22
-  - DJANGO_VERSION=dj30
-  - DJANGO_VERSION=dj31
-  - DJANGO_VERSION=dj32
-  - DJANGO_VERSION=djdev
+- TWISTED="twisted"
+- TWISTED="twisted==18.7.0"
 
-matrix:
-  allow_failures:
-    - env: DJANGO_VERSION=djdev
-    - env: MODE=flake8-strict
-  exclude:
-    - python: "3.5"
-      env: MODE=flake8
-    - python: "3.5"
-      env: MODE=flake8-strict
-    - python: "3.5"
-      env: MODE=flake8-docs
-    - python: "3.5"
-      env: DJANGO_VERSION=dj30
-    - python: "3.5"
-      env: DJANGO_VERSION=dj31
-    - python: "3.5"
-      env: DJANGO_VERSION=dj32
-    - python: "3.5"
-      env: DJANGO_VERSION=djdev
-
-before_install:
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 762E3157
-  
-addons:
-  apt:
-    packages:
-    - binutils
-    - libproj-dev
-    - gdal-bin
-    - libsqlite3-mod-spatialite
-
-cache:
-  directories:
-    - $HOME/.cache/pip
-
-before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
-
-# command to install dependencies
 install:
-  - pip install -U pip
-  - pip install -U wheel virtualenv
-  - pip install tox coveralls
-  
-after_success:
-    - coveralls
+- pip install $TWISTED -e .[tests]
+- pip freeze
 
-# command to run tests
 script:
-    - apt list --installed
-    - coverage erase
-    - tox -e py${TRAVIS_PYTHON_VERSION/./}-${DJANGO_VERSION}${MODE}
+- pytest
+
+stages:
+  - lint
+  - test
+  - name: release
+    if: tag IS present
+
+jobs:
+  include:
+    - stage: lint
+      python: 3.6
+      install: pip install -U -e .[tests] black pyflakes isort
+      script:
+        - pyflakes daphne tests
+        - black --check daphne tests
+        - isort --check-only --diff --recursive daphne tests
+
+    - stage: release
+      python: 3.6
+      script: skip
+      deploy:
+        provider: pypi
+        user: andrewgodwin_bot
+        on:
+          tags: true
+        distributions: sdist bdist_wheel
+        password:
+          secure: IA+dvSmMKN+fT47rgRb6zdmrExhK5QCVEDH8kheC6kAacw80ORBZKo6sMX9GQBJ3BlfhTqrzAhItHkDUxonb579rJDvmlJ7FPg7axZpsY9Fmls6q1rJC/La8iGWx20+ctberejKSH3wSwa0LH0imJXGDoKKzf1DLmk5pEEWjG2QqhKdEtyAcnzOPnDWcRCs+DKfQcMzETH7lMFN8oe3aBhHLLtcg4yA78cN5CeyyH92lmbaVp7k/b1FqXXFgf16bi5tlgLrb6DhmcnNjwLMSHRafNoPCXkWQOwh6gEHeHRR3OsHsBueyJHIikuHNrpmgpAqjYlVQ5WqmfgMlhCfRm9xL+G4G+KK9n8AJNGAszUfxVlPvMTw+nkOSd/bmxKrdCqqYnDIvDLucXJ86TstNzklfAwr3FL+wBlucRtOMLhQlHIaPTXYcNpOuh6B4ELjC+WjDGh8EdRKvcsZz7+5AS5ZaDDccuviMzQFsXVcE2d4HiosbARVrkxJ7j3MWp0OGgWVxXgRO2EQIksbgGSIjI8PqFjBqht2WT6MhVZPCc9XHUlP2CiAR5+QY8JgTIztbEDuhpgr0cRAtiHwJEAxDR9tJR/j/v4X/Pau2ZdR0C0yW77lVgD75spLL0khAnU7q+qgiF0hyQ7gRRVy0tElT0HBenVbzjzHowdJX8lSPjRg=
