@@ -1,23 +1,68 @@
-language: python
-dist: xenial
-matrix:
-  include:
-    - python: '3.6'
-    - python: '3.7'
-    - python: '3.8'
-      env: UPLOAD=True
-    - python: '3.9'
-install:
-  - pip install .[test]
-script: echo hello world
-deploy:
-  provider: pypi
-  distributions: sdist
-  user: mara-pypi-upload-account
-  password:
-    secure: 0TQCqyHghdxbOQgpBRlJJzReA/Ksys/YB01T8B7Kxn8rNHwxjcY/PBv1/IrlfSz7Qn2QVrQwloYWQfiGlG7vzyPn7GdMElNEDQDWN4TvtjT93hpsWM5kn7MPI1eZTo2Ua0u+FDoMcMkTPB/qYJWttCQGm+Cd3SwQFJUW4lgXRw1k5GPujDZjxgHrNg5tshV1Ss7hB52wxfaSeqJU4Xu/9AuKfC4xITuXn15w0EOV/hvrXFuYNl03LhOTPAfiyAL+QqlBOEZq9DOAYd5bYSFkjhfwyM14Kp7AUvq1ZOwLWe8o/6sG0F8SUIEte7CncsAXC3WV64nTrIDUvg82YaRu5cx9mtRtiKFGHQJQpVaTQD87EBZ+hgZG7j2vlgI74jRyG9V7gbxj3JBgDzsET4eiIPGX/RQM7THvUdCB2nSPGGAvkcf+DwLtm/n0JDBJhUEtDq5pCcP/IcM3ij/q3qSzO9CgbE/uoLVfh1DQwQKT944Ls0ArCgpUw9Pc3iidlx1/3xOy6N7MONwSXBSX6SilV098QfTkQ0AHRCxg86YUZ8ijnJnF+UguDM7C1NMRXA/ir+FFZUU7rSuQppHDZK8eBNL1a5G4t8W2PftL0tAonEJESB8SW6rLnLHRqY2UWw7PelwZ3kQvUJAg0V1mow3nsekloZWmpaGo5PJFzUXjSD4=
-  on:
-    tags: true
-    branch: master
-    repo: mara/mara-pipelines
-    condition: "$UPLOAD == True"
+name: Kazoo Awesome Testing
+
+on: [push]
+
+jobs:
+  test:
+    name: >
+      Test Python ${{ matrix.python-version }},
+      ZK ${{ matrix.zk-version }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9, pypy-3.7]
+        zk-version: [3.4.14, 3.5.8]
+        include:
+          - python-version: 3.7
+            tox-env: py37
+          - python-version: 3.8
+            tox-env: py38
+          - python-version: 3.9
+            tox-env: py39
+          - python-version: pypy-3.7
+            tox-env: pypy3
+    steps:
+      - name: Handle the code
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Handle pip cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Handle ZK installation cache
+        uses: actions/cache@v2
+        with:
+          path: zookeeper
+          key: ${{ runner.os }}-zookeeper
+          restore-keys: |
+            ${{ runner.os }}-zookeeper
+
+      - name: Install required dependencies
+        run: |
+          sudo apt-get -y install libevent-dev krb5-kdc krb5-admin-server libkrb5-dev
+          python -m pip install --upgrade pip
+          pip install tox
+
+      - name: Test with tox
+        run: tox -e ${TOX_VENV}
+        env:
+          TOX_VENV: ${{ format('{0}-{1}', matrix.tox-env, 'gevent-eventlet-sasl,codecov') }}
+          ZOOKEEPER_VERSION: ${{ matrix.zk-version }}
+          # TODO: can be removed once tests for ZK 3.4 are removed
+          ZOOKEEPER_PREFIX: "${{ !contains(matrix.zk-version, '3.4') && 'apache-' || '' }}"
+          ZOOKEEPER_SUFFIX: "${{ !contains(matrix.zk-version, '3.4') && '-bin' || '' }}"
+          ZOOKEEPER_LIB: "${{ !contains(matrix.zk-version, '3.4') && 'lib' || '' }}"
+
+      - name: Publish Codecov report
+        uses: codecov/codecov-action@v2
