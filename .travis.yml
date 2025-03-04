@@ -1,29 +1,16 @@
 language: python
+dist: Xenial
+python: "3.6"
 
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-
-sudo: false
-
-services:
-  - elasticsearch
-  - mysql
-
-before_install:
-  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.0.deb && sudo dpkg -i --force-confnew elasticsearch-6.1.0.deb && sudo service elasticsearch restart
-  - pip install --upgrade setuptools==49.6.0
-  - pip install --upgrade pip==18.1
-  - pip install flake8
-  - pip install coveralls
-  - pip install -r "requirements.txt"
-  - pip install -r "requirements_tests.txt"
+install:
+  # Get Migen / LiteX / Cores
+  - cd ~/
+  - wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
+  - python3 litex_setup.py init install
+  # Install the version being tested
+  - cd $TRAVIS_BUILD_DIR
+  - python3 setup.py install
 
 script:
-  - flake8 .
-  - cd tests
-  - coverage run --source=sirmordred run_tests.py
-
-after_success:
-  - coveralls
+  - cd $TRAVIS_BUILD_DIR
+  - python setup.py test
