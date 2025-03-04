@@ -1,25 +1,22 @@
-os: linux
-group: stable
-sudo: required
-dist: trusty
-services:
-  - docker
-language: generic
+language: python
+
 python:
-  - "2.7"
-env:
-  matrix:
-    - ROS_DISTRO=kinetic ROS_REPO=ros UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
-    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
-    - ROS_DISTRO=melodic ROS_REPO=ros UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
-    - ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
-matrix:
-  allow_failures:
-    - env: ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
-    - env: ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
-before_install:
-    - git clone https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins.git
+    - 2.7
+    - 3.6
+    - 3.7
+    - 3.8
+    - 3.9
+
 install:
-    - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+    - pip install -r requirements.txt
+    - python setup.py install
+    - pip install coveralls
+
 script:
-    - source .ci_config/travis.sh
+    #- python tests.py
+    - coverage run --source=nvd3 setup.py test
+notifications:
+    email: true
+
+after_success:
+    coveralls
