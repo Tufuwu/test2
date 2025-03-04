@@ -1,49 +1,25 @@
-language: python
+language: minimal
+
 matrix:
-    include:
-    - python: "2.7"
-      env:
-          - AIO_AVAILABLE=false
-          - COVERAGERC=".coveragerc-py2"
-    - python: "3.4"
-      env:
-          - AIO_AVAILABLE=false
-          - COVERAGERC=".coveragerc-py34"
-    - python: "3.5"
-      env:
-          - AIO_AVAILABLE=false
-          - COVERAGERC=".coveragerc"
-    - python: "3.6"
-      env:
-          - AIO_AVAILABLE=true
-          - COVERAGERC=".coveragerc"
-    - python: "3.7"
-      dist: xenial
-      sudo: required
-      env:
-          - AIO_AVAILABLE=true
-          - COVERAGERC=".coveragerc"
-    - python: "3.8"
-      dist: xenial
-      sudo: required
-      env:
-          - AIO_AVAILABLE=true
-          - COVERAGERC=".coveragerc"
+  include:
+  - os: linux
+    env: PYTHON_VERSION="3.5" MAINDEPS="numpy=1.12 gdal=2.2.4 scipy=0.19 pytz" DEPS="dask-core=0.18 toolz=0.9 pandas=0.19 geopandas=0.4.1"
+  - os: linux
+    env: PYTHON_VERSION="3.6" MAINDEPS="numpy=1.14 gdal=2.2.4 scipy=1.1 pytz" DEPS="dask-core=0.20 toolz=0.10 pandas=0.23 geopandas=0.5"
+  - os: linux
+    env: PYTHON_VERSION="3.7" MAINDEPS="numpy=1.16 scipy=1.3 pytz" DEPS="dask-core=1.* gdal=2.* toolz pandas=0.25 geopandas=0.6 pyproj>=2"
+  - os: linux
+    env: PYTHON_VERSION="3.8" MAINDEPS="" DEPS="numpy scipy pytz dask-core gdal toolz geopandas pyproj"
+
 install:
-  - pip install -U pip setuptools wheel
-  - pip install -U pytest pytest-cov coveralls
-  - sh -c "if [ '$AIO_AVAILABLE' = 'true' ]; then pip install -U pytest-asyncio; fi"
-  - pip install -e .
+  - wget https://repo.anaconda.com/pkgs/misc/conda-execs/conda-latest-$TRAVIS_OS_NAME-64.exe -O conda.exe
+  - chmod +x conda.exe
+  - export CONDA_ALWAYS_YES=1
+  - ./conda.exe create --prefix $HOME/miniconda python=$PYTHON_VERSION conda pytest $MAINDEPS
+  - ./conda.exe install --prefix $HOME/miniconda --channel conda-forge $DEPS
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - pip install . --no-deps
+
 script:
-  - py.test --cov-config $COVERAGERC --cov=pydispatch
-after_success:
-  - coveralls --rcfile="$COVERAGERC"
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  on:
-    python: "3.6"
-    tags: true
-  username: __token__
-  password:
-    secure: NIm71IwfmsgZkVHb2gNpzX3wGWckPF4ryMX95eoURh0cn3CBEwtdx0n1y2UjIIQMHswzZ13Ksmd1X5q04SMwbr0CBmdfDalH4BZXjhnuHFSeIy6MIZzXDzacAEsbR5FNGjEMgYWxV4bh463sPackQ+qPQFlC5Qv8FA3a+i6Ei6ZtFJDPzaHhRLmnddbX4FeCM8tCri5mLZpK/3fpdiwjRvqtkftNvDxnieSBG/n/dqOGfxQghWLAiqOJV+BlGG7awjMSXcBOjzZsT0SI02bNrSV6vDJI7fKp5hjkb73yBucOd5YVvDZWGIF30thq662Ug9hw37k+EbtHOFjSDgFVXdC3v6PZoiedo42SLPOZ0d/jdGaQIyijkq0Sw+UplBlKBc+7s+sWUFSgjaYOvgyXp4bG6ApDC/yJ5FY7h/GobpsctaZ60lc0lFBSxGasd/pk0KUYCG4A6EXvEh62W4F9gJJXJQ/+g4tn38pX21LCy8lckqgo4Eqwcn4ch6N+7n1U7wVjZBoXXnCT1Q65w1LQmKKiAFPczAwZ5sxs+KXLKPaEnSHZ1OsNZNrcj4kfncxM1zdNMtGZUaw+p3RQs1vHPBNg/0p2tHZ/YHEJFHZd3/4KfyT8sMXXsMwd7jxBievN2XVrK/4PtXWFObhQmmzZGBFn0a09pn6F+map21j3Em4=
+  - pytest
