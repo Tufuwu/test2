@@ -1,39 +1,71 @@
-dist: bionic
-sudo: false
 language: python
-cache: pip
 python:
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
-stages:
-  - lint
-  - test
-arch:
-  - amd64
-  - ppc64le
-jobs:
-  fast_finish: true
-  include:
-    - { stage: lint, env: TOXENV=flake8, python: 3.6 }
-    - { stage: lint, env: TOXENV=isort, python: 3.6 }
-    - { stage: lint, env: TOXENV=flake8, python: 3.6, arch: ppc64le }
-    - { stage: lint, env: TOXENV=isort, python: 3.6, arch: ppc64le }
-
+  - "2.6"
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 install:
-- pip install tox coveralls tox-travis
+  - pip install coveralls coverage
+  - pip install $DJANGO
 script:
-- tox
-after_success:
-- if [ -f .coverage ]; then coveralls; fi
-before_deploy: "pip install django"
-deploy:
-  provider: pypi
-  user: charettes
-  password:
-    secure: Ix/iLGKu+usjaNGPIKRzvgdZz8TVxReiMFLorgMpHb9P29tgIBQSDzVmo8gzUi+LF4SQs2AdnuYJY15ap68JX7iLfCuWWYIvIqgMLb3W64jfUDg9KpLJQYCv6cTKQHoDVtVTg0jXJmauEYMMYuqmdrSgZ6rSfpsbajMrveCzVuStb7kd5H4WPX3/j4JfCmr07CyAi85rLAnaIfmCYADWC4nrYll7+0Ugke64C4KstY0l6HYBNTT5ZwJvXSNd0VQd31b5okv8bwjGXzeVrbgIAe+c1p0lS11hsNqfLL/rrnlvgC7P7568TxGwWVmIDJm131r1K7skLscEfCuPbJJ3oqljxLQMQIJ4JbR12HtRwB93dOnJOgCbqySAJAZHUvkm2r3VAO8BJK3xYnJg/2IGrxolDQxwJi2SMEgwqQZx3thTFKXvviiWn5dnLjiNRpSOHUzayCVYga7WAgVksKVMbmtcNrJWwrAHtWLxo9vnM2W+6JNFeXiGIIwGu7qJ/Sz/qCuv/uKibbFqhUJfATXf5HhSJ3yIM/Ef04/SSpBqkYcFcrGLdzzW2Bpv4jscv4EcNyGDxnzeJtvXWVceoW0g7XweUn4b5P+NvOSV4YCjJ04BU4r/upV7+ulkQxnCWot2MD0zhvlodldn+6tGfdBbYJ/KlBHQjwdjFFKaxqRkuyA=
-  distributions: sdist bdist_wheel
-  on:
-    tags: true
-    condition: "$TRAVIS_PYTHON_VERSION = 3.5"
+  - coverage run runtests.py
+  - coverage report -m
+after_script:
+  - coverage combine
+  - coveralls
+env:
+  - DJANGO="Django>=1.4,<1.5"
+  - DJANGO="Django>=1.5,<1.6"
+  - DJANGO="Django>=1.6,<1.7"
+  - DJANGO="Django>=1.7,<1.8"
+  - DJANGO="Django>=1.8,<1.9"
+  - DJANGO="Django>=1.9,<1.10"
+  - DJANGO="Django>=1.10,<1.11"
+  - DJANGO="Django>=1.11,<2.0"
+  - DJANGO="https://github.com/django/django/archive/master.tar.gz"
+matrix:
+  exclude:
+    # Python 2.6 support has been dropped in Django 1.7
+    - python: "2.6"
+      env: DJANGO="Django>=1.7,<1.8"
+    - python: "2.6"
+      env: DJANGO="Django>=1.8,<1.9"
+    - python: "2.6"
+      env: DJANGO="Django>=1.9,<1.10"
+    - python: "2.6"
+      env: DJANGO="Django>=1.10,<1.11"
+    - python: "2.6"
+      env: DJANGO="Django>=1.11,<2.0"
+    - python: "2.6"
+      env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
+    - python: "2.7"
+      env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
+    - python: "3.4"
+      env: DJANGO="Django>=1.4,<1.5"
+    - python: "3.4"
+      env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
+    - python: "3.5"
+      env: DJANGO="Django>=1.4,<1.5"
+    - python: "3.5"
+      env: DJANGO="Django>=1.5,<1.6"
+    - python: "3.5"
+      env: DJANGO="Django>=1.6,<1.7"
+    - python: "3.5"
+      env: DJANGO="Django>=1.7,<1.8"
+    - python: "3.6"
+      env: DJANGO="Django>=1.4,<1.5"
+    - python: "3.6"
+      env: DJANGO="Django>=1.5,<1.6"
+    - python: "3.6"
+      env: DJANGO="Django>=1.6,<1.7"
+    - python: "3.6"
+      env: DJANGO="Django>=1.7,<1.8"
+    - python: "3.6"
+      env: DJANGO="Django>=1.8,<1.9"
+    - python: "3.6"
+      env: DJANGO="Django>=1.9,<1.10"
+    - python: "3.6"
+      env: DJANGO="Django>=1.10,<1.11"
+  allow_failures:
+    - env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
