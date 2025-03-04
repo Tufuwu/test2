@@ -1,37 +1,82 @@
 language: python
-matrix:
-  include:
-  - python: 3.6
-    env: TOXENV=py36
+script: make test_long
+dist: xenial
+os: linux
+jobs:
+  exclude:
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.1.* PYQT=PyQt5
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.1.* PYQT=PySide2
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.2.* PYQT=PyQt5
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.2.* PYQT=PySide2
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.3.* PYQT=PyQt5
+    - python: "3.5"
+      env: MATPLOTLIB_VERSION=3.3.* PYQT=PySide2
+    - python: "3.8"
+      env: MATPLOTLIB_VERSION=1.5.*
+    - python: "3.8"
+      env: MATPLOTLIB_VERSION=2.0.*
+    - python: "3.8"
+      env: MATPLOTLIB_VERSION=2.1.*
+    - python: "3.8"
+      env: MATPLOTLIB_VERSION=2.2.*
+    - python: "3.9"
+      env: MATPLOTLIB_VERSION=1.5.*
+    - python: "3.9"
+      env: MATPLOTLIB_VERSION=2.0.*
+    - python: "3.9"
+      env: MATPLOTLIB_VERSION=2.1.*
+    - python: "3.9"
+      env: MATPLOTLIB_VERSION=2.2.*
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+env:
+  - MATPLOTLIB_VERSION=1.5.*
+  - MATPLOTLIB_VERSION=2.0.*
+  - MATPLOTLIB_VERSION=2.1.*
+  - MATPLOTLIB_VERSION=2.2.*
+  - MATPLOTLIB_VERSION=3.0.* PYQT=PyQt5
+  - MATPLOTLIB_VERSION=3.0.* PYQT=PySide2
+  - MATPLOTLIB_VERSION=3.1.* PYQT=PyQt5
+  - MATPLOTLIB_VERSION=3.1.* PYQT=PySide2
+  - MATPLOTLIB_VERSION=3.2.* PYQT=PyQt5
+  - MATPLOTLIB_VERSION=3.2.* PYQT=PySide2
+  - MATPLOTLIB_VERSION=3.3.* PYQT=PyQt5
+  - MATPLOTLIB_VERSION=3.3.* PYQT=PySide2
 addons:
   apt:
     packages:
-    - python3
-    - python3-pip
-    - swig
-    - libusb-1.0-0-dev
-    - libprotobuf-dev
-cache:
-  pip: true
-  apt: true
-  directories:
-  - "$HOME/.cache/pip"
+    - libxcb-icccm4
+    - libxcb-image0
+    - libxcb-keysyms1
+    - libxcb-randr0
+    - libxcb-render-util0
+    - libxcb-render0
+    - libxcb-shape0
+    - libxcb-shm0
+    - libxcb-sync1
+    - libxcb-util1
+    - libxcb-xfixes0
+    - libxcb-xinerama0
+    - libxcb-xkb1
+    - libxkbcommon-x11-0
+services:
+  - xvfb
 install:
-- pip install tox coveralls
-- pip install -e .
-- wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip
-- unzip protoc-3.6.1-linux-x86_64.zip
-- sudo cp bin/protoc /usr/bin/protoc && sudo chmod 777 /usr/bin/protoc
-- sudo cp -r include/. /usr/include && sudo chmod -R +r /usr/include/google
-- protoc --version
-script: tox
-after_success:
-- coveralls
-deploy:
-  provider: pypi
-  user: "__token__"
-  on:
-    tags: true
-  password:
-    secure: gWriMCwCITTFTXKl4k7/eVYpx07N/z2zUGxZ3lme/pl6mRfJvj8QbpvnJAQGNn5VEZfWuuKveCoAySfrLcojV8RJuaRLcAnIuJInZt/Cf8QXmHLm7LK9xAnKofi++RRqk0B81CwbKjq3/JhMmygvSjSR5vRDogo3KB2GHRnE3HQUSy3IlBeZDDDpr7LcNcNVSr/z9TXC1/UA05erhUvRWuMiDI9AKqvPZ80K+GlzWEPSxkeFotC/i7PyrZfJWEzVPrgt1iFOK9lNmh5lKyQ4do0nuVHAZFcxsMb+6uBek7WNgmUOUAhOTHa/AM//b8qIhVzSPFc8tQlqdyN6lH8l0SbbzX7BkKNqS1hL5XzLJ+/VZgBbSUDWSDq08Dmu4snRvxPZc6RzfmQKQ0H0esOKzBwS8dIAQDEVwj13WuCnV7G0yHD2yRXmyWbLcbhDW7rNwC7VsyenPA9SwJ9vrCRoCuB3+zKERAya47dgflFHtxITHVdDR/tJ7h83YiEuVp/GkdOOet2gHMO5HyqoipaXryg7fu7JAhZ727l9t8PGWWKwKE0GBL7/IgrAIhR3GuYK33fInB2SpSoAmoxipfU31TpO1Xb+WT+yQwXft+wFYK6DH65yhaedHqKnxu7ph2ZE36XB4qY84sbvE/GgWF6KJjXoA1RTxmohI97i2dmTQJI=
-  skip_existing: true
+  - pip install mock
+  - '[ -n "$PYQT" ] && pip install QtPy ${PYQT} || true'
+  - pip install matplotlib==${MATPLOTLIB_VERSION}
+notifications:
+  pushover:
+    api_key:
+      secure: NVBdwHfLX60WsmuZGn8r4R/zBqR8t2eo8RYLBowWKMeUQZSY/9Pg7Esl2LrhSp3dktQJrocc656PXYDBI37C+2kj17c+XGtKMFiUvQACBuOc0088+8Riu91XqjExwP8wH0aEDpmKCzUL6/lGMLse2zuonxClflFFjYL9GPzxom4=
+    users:
+      secure: Y4NyGJ+vlqp7N1BhyHwQR4JBsEgEvSLOvRD7xxl/BFjnmABZUvwDpnji2owGO0T+pSMua3gYL90k7FZDgCvHROFsumiA4Qq2O6FsxJPGxyoOHXryJzI6Md3FbR5EnC1LNWb9/RRaoaqLWFEEIJE0DxkZZIy3CsFTqaKpYzb4Uf4=
