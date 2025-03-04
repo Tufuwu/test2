@@ -1,11 +1,25 @@
----
-version: ~> 1.0
-language: ruby
-
-script: |
-  if [[ ${TRAVIS_EVENT_TYPE} == cron ]]; then
-     curl -s -X POST \
-      -d "branches=${TRAVIS_BRANCH}" \
-      -d "token=${RTD_TOKEN}" \
-      https://readthedocs.org/api/v2/webhook/nethserver-devel/49560/
-  fi
+os: linux
+group: stable
+sudo: required
+dist: trusty
+services:
+  - docker
+language: generic
+python:
+  - "2.7"
+env:
+  matrix:
+    - ROS_DISTRO=kinetic ROS_REPO=ros UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
+    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
+    - ROS_DISTRO=melodic ROS_REPO=ros UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
+    - ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
+matrix:
+  allow_failures:
+    - env: ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=xenial
+    - env: ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=ubuntu OS_CODE_NAME=bionic
+before_install:
+    - git clone https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins.git
+install:
+    - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+script:
+    - source .ci_config/travis.sh
