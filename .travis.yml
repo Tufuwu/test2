@@ -1,21 +1,25 @@
-dist: bionic
-sudo: false
 language: python
+os: linux
+dist: jammy
 python:
-    - "2.7"
-    - "3.6"
-    - "3.7"
-    - "3.8"
-    - "pypy3"
+  - "3.9"
+services:
+  - docker
+before_install:
+  - sudo apt install -y rustc cargo
 install:
-    - pip install tox-travis coveralls
+  - pip install -r requirements-dev.txt -r requirements.txt
+  # TODO(jeanralphaviles): Remove when Travis' Ruby is updated.
+  - gem install chef-utils -v 16.6.14
+  - gem install mdl
 script:
-    - tox
-    - python setup.py install
-    - mappyfile schema mapfile-schema.json
-    - mappyfile schema mapfile-schema-7-6.json --version=7.6
-    - mappyfile validate tests/sample_maps/256_overlay_res.map
-    - mappyfile format tests/sample_maps/256_overlay_res.map tests/sample_maps/256_overlay_res_formatted.map
-
-after_success:
-    - coveralls
+  - docker build -t jraviles/prometheus_speedtest:latest .
+  - docker run --rm jraviles/prometheus_speedtest:latest --version
+  # Issue #19
+  - python -c 'from prometheus_speedtest import prometheus_speedtest as p; p.FLAGS.version = True; p.init()'
+  - pre-commit run -a
+  - python setup.py sdist
+  - pip install dist/*
+addons:
+  apt:
+    update: true
