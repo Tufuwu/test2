@@ -1,18 +1,17 @@
-language: python
+matrix:
 
-python:
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-    - "3.7"
-    - "3.8"
-    - "3.9"
-    - "pypy"
-    - "pypy3"
+  include:
 
-install: pip install flake8
+    - language: ruby
 
-script:
-    - python -m pytest -v .
-    - flake8
+      rvm: 2.4.1
+
+      before_script: gem install awesome_bot
+
+      script: awesome_bot README.md --allow-redirect --white-list http://hacktoberfest.com/,https://hacktoberfest.com/,https://hacktoberfest.digitalocean.com/,https://github.com/search
+
+    - language: python
+
+      rvm: 3.7
+
+      script: python validate-alphabetical.py README.md
