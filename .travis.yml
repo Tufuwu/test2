@@ -1,16 +1,10 @@
----
 language: python
 python:
-  - '3.5'
-  - '3.6'
-  - '3.7'
-  - '3.8'
-  - 'pypy'
-  - 'pypy3'
-
+  - "3.6"
 install:
-  - pip install tox-travis
-
+  - pip install codecov
+  - pip install coverage
 script:
-  - make -C libfaketime/vendor/libfaketime
-  - tox
+  - coverage run jsn.py -i example.jsn -o test.json -I import_dir
+after_success:
+  - codecov
