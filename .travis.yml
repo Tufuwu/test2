@@ -1,59 +1,37 @@
+os: linux
+dist: xenial
+
+# configure sonarcloud analysis
+addons:
+  sonarcloud:
+    organization: "jonlabelle-github"
+    token:
+      secure: "ccqbFD3T4Kd87e3PwmqEKIF0uXTbqfgwNBAfxagIm09/3mNWO//uUljc7yl1YHGqmmuBFROY5ZkgSTfObUVKa3qVedkO5yO+e1Y8/hu3OokiSZ0rTBZWZ9loAzK709uwroUulbTbn8nwVxwTtJ5Ai69ANqH11bxGd5sRPH3DQQz3jeBeX6VbDT0IgeuCb9gXltW+TYuK8m8wjlj5oXxtJPKrQzi2cJS8PbP9bENo2J27+MJa4zSOAyUzDaj3e1cAoDLQOcUTg0qumTlGpYyW9ToVKE8Z6JAmfiaPi/oB8jEvhSCPV5ekDVahw/zO5qQ7wHB9Lk0GaqIdKQezQJOt27Iig5Bg0tMJBVZ3yNgG/44hskTh42n4UJChYHVfsql7mKL2jLEbW4eeI/VjVpCT9fvYUuY9wdecZs9gf33BJCT3aoilbX3MvXyPIk/FMzmhj0By7lSAIiSh8d9MfjP7XPvoTr4ggi//GAq3oTb6q/xaSbg/wIK1aibh3uzVtAcHPh9JCI0iUjDfpzMYHWXlajHhC9qIlq4GA3po4Q0aS50kTlc450QVlI6su5j6tpQGkYQnVum9glHJkQNMboVOVSuSi3QsC98jaG5Z5LLF4GbVqJSEFJfgQ/whKU4PcycAbNe7oBsbSClYxopd5O6JkPoSJqnNNkYl/DfXXe5iRTE="
+jdk:
+  - oraclejdk8
+# sonarcloud needs access to full scm history
+# https://docs.travis-ci.com/user/sonarcloud/#accessing-full-scm-history
+git:
+  depth: false
+
 language: python
-matrix:
-  include:
-    # Use the built in venv for linux builds (timing out upon downloading annotation files)
-    # - os: linux
-    #   python: 2.7
-    # - os: linux
-    #   python: 3.6
-    # Use generic language for osx and install python by hand
-    - os: osx
-      language: generic
-      env: PYTHON=2.7
-    - os: osx
-      language: generic
-      env: PYTHON=3.6
-    - os: osx
-      language: generic
-      env: PYTHON=3.7
 
-# Setup anaconda
-#   * 'wget' suggested by: https://github.com/travis-ci/travis-ci/issues/6825
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    PYTHON_VERSIONS=$TRAVIS_PYTHON_VERSION ;
-    curl https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -o miniconda.sh ;
-    fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    PYTHON_VERSIONS=$PYTHON ;
-    curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda.sh ;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+python:
+  - "2.7"
+  - "3.4"
 
-  # Useful for debugging any issues with conda
-  - conda info -a
-
-# Install packages
 install:
-  # scipy and pandas are required by the package 'statsmodels'
-  - for VERSION in $PYTHON_VERSIONS ; do
-    conda create --name $VERSION --yes python=$VERSION --file requirements.txt ;
-    source activate $VERSION ;
-    pip install -e . ;
-    done
+  - bash scripts/install.sh
 
-# command to run tests
 script:
-  - for VERSION in $PYTHON_VERSIONS ; do
-    source activate $VERSION ;
-    make test_travis_subset ;
-    done
+  - bash scripts/run_tests.sh
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi'
 
-after_success:
-  - coveralls
+cache:
+  directories:
+    - $HOME/.sonar/cache
 
-sudo: false
+notifications:
+  email:
+    on_success: never
+    on_failure: always
