@@ -1,100 +1,27 @@
 language: python
-sudo: false
-cache: pip
 
-matrix:
-  include:
-    - python: 3.6
-      env: TOXENV=py36-django22
-    - python: 3.7
-      env: TOXENV=py37-django22
-    - python: 3.8
-      env: TOXENV=py38-django22
-    - python: 3.9
-      env: TOXENV=py39-django22
-    - python: 3.6
-      env: TOXENV=py36-django30
-    - python: 3.7
-      env: TOXENV=py37-django30
-    - python: 3.8
-      env: TOXENV=py38-django30
-    - python: 3.9
-      env: TOXENV=py39-django30
-    - python: 3.6
-      env: TOXENV=py36-django31
-    - python: 3.7
-      env: TOXENV=py37-django31
-    - python: 3.8
-      env: TOXENV=py38-django31
-    - python: 3.9
-      env: TOXENV=py39-django31
-    - python: 3.6
-      env: TOXENV=py36-django32
-    - python: 3.7
-      env: TOXENV=py37-django32
-    - python: 3.8
-      env: TOXENV=py38-django32
-    - python: 3.9
-      env: TOXENV=py39-django32
-    # Adding jobs for ppc64le
-    - python: 3.6
-      env: TOXENV=py36-django22
-      arch: ppc64le
-    - python: 3.7
-      env: TOXENV=py37-django22
-      arch: ppc64le
-    - python: 3.8
-      env: TOXENV=py38-django22
-      arch: ppc64le
-    - python: 3.9
-      env: TOXENV=py39-django22
-      arch: ppc64le
-    - python: 3.6
-      env: TOXENV=py36-django30
-      arch: ppc64le
-    - python: 3.7
-      env: TOXENV=py37-django30
-      arch: ppc64le
-    - python: 3.8
-      env: TOXENV=py38-django30
-      arch: ppc64le
-    - python: 3.9
-      env: TOXENV=py39-django30
-      arch: ppc64le
-    - python: 3.6
-      env: TOXENV=py36-django31
-      arch: ppc64le
-    - python: 3.7
-      env: TOXENV=py37-django31
-      arch: ppc64le
-    - python: 3.8
-      env: TOXENV=py38-django31
-      arch: ppc64le
-    - python: 3.9
-      env: TOXENV=py39-django31
-      arch: ppc64le
-    - python: 3.6
-      env: TOXENV=py36-django32
-      arch: ppc64le
-    - python: 3.7
-      env: TOXENV=py37-django32
-      arch: ppc64le
-    - python: 3.8
-      env: TOXENV=py38-django32
-      arch: ppc64le
-    - python: 3.9
-      env: TOXENV=py39-django32
-      arch: ppc64le
+python:
+   - "3.6"
+
+services:
+  - xvfb
 
 install:
-  - pip install tox
+   - pip install coverage
+   - pip install coveralls
+   - pip install flake8
+   - pip install nose
+   - pip install -r requirements.txt
+
+# for production, remove the --exit-zero
+# this side-steps failing build on PEP8 violations
+before_script:
+   - "export DISPLAY=:99.0"
+   - flake8 impedance --exclude=*.ipynb_checkpoints
 
 script:
-  - tox
+   - pytest --cov=impedance impedance/tests
 
-notifications:
-  email:
-    recipients:
-      - niwi@niwi.nz
-    on_success: change
-    on_failure: change
+after_success:
+   - coverage report
+   - coveralls
