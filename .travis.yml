@@ -1,27 +1,35 @@
 language: python
 
-matrix:
-  include:
-  - python: 2.7
-    env: TOXENV=py27
-  - python: 3.5
-    env: TOXENV=py35
-  - python: 3.5
-    env: TOXENV=lint
+dist: xenial
 
-before_script:
-  - pip install tox
+python:
+
+  - "2.7"
+
+  - "3.8"
+
+  - "3.9"
+
+install:
+
+  - pip install codecov
+
+  - pip install -r requirements.txt
+
+  - pip install -r test-requirements.txt
 
 script:
-  - tox
 
-deploy:
-  provider: pypi
-  skip_existing: true
-  user: $PYPI_USER
-  password: $PYPI_PASSWORD
-  distributions: sdist bdist_wheel
-  on:
-    repo: camptocamp/marabunta
-    branch: master
-    tags: true
+  - flake8 stockstats.py test.py
+
+  - py.test --cov=./ test.py
+
+after_success:
+
+  - codecov
+
+notifications:
+
+  email:
+
+    - jealous@163.com
