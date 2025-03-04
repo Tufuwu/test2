@@ -1,21 +1,11 @@
-dist: xenial
-language: python
-python: 3.7
+language: generic
 
-install:
-  - pip install flake8 flake8_polyfill kodi-addon-checker git+https://github.com/romanvm/kodi-addon-submitter.git
+services:
+  - docker
 
 before_script:
-- git config core.quotepath false
+  - make build-image
 
-# command to run our tests
 script:
-  - flake8 ./ --statistics --show-source --ignore=E501 --exclude=croniter.py # check python structure against flake8 tests, ignore long lines
-  - kodi-addon-checker --branch=matrix --allow-folder-id-mismatch
-
-#deploy when tag created
-deploy:
-  - provider: script
-    script: submit-addon -r repo-scripts -b matrix --push-branch service.libraryautoupdate
-    on:
-      tags: true
+  - make lint
+  - make unit-test
