@@ -1,20 +1,49 @@
 language: python
+
+services:
+  - redis
+  - mongodb
+
 python:
-    - "2.7"
-    - "3.6"
-    - "3.7"
-    - "3.8"
+  - "3.7"
+  - "3.8"
+
 env:
-    - REQUIREMENTS=minimal_requirements.txt
-    - REQUIREMENTS=requirements.txt
-install:
-    - pip install -r $REQUIREMENTS
-    - pip install --upgrade pytest
-    - pip install pytest-cov codecov
+  - DJANGO=3.1.2
+  - DJANGO=2.2.16
+
+sudo: true
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - tcl8.5
+
 before_script:
-    - "export MPLBACKEND=Agg"
-script: 
-    - python -m pytest --cov=fgivenx
-after_success: 
-    - codecov
-    - bash <(curl -s https://codecov.io/bash)
+  - git clone https://github.com/antirez/disque.git disque_server
+  - "cd disque_server/src && make && PREFIX=../ make install && cd -"
+  - "./disque_server/bin/disque-server &"
+  - ./disque_server/bin/disque PING
+
+install:
+  - pip install -q django==$DJANGO
+  - pip install -r requirements.txt
+  - pip install pytest --upgrade
+  - pip install pytest-django codecov sphinx poetry
+  - poetry install
+
+script:
+  - coverage run --source=django_q -m py.test
+  - sphinx-build -b html -d docs/_build/doctrees  -nW docs docs/_build/html
+
+after_success:
+  - codecov
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/cbcff78c4be241602332
+    on_success: change
+    on_failure: always
+    on_start: never
