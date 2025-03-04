@@ -1,34 +1,27 @@
-dist: focal
+os:
+  - linux
+dist: bionic
 language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-
-addons:
-  apt:
-    packages:
-    - libkeyutils-dev
-    - libgirepository1.0-dev
-
-install:
-  - python setup.py sdist bdist_wheel
-  - pip install dist/*.whl keyutils
-  - pip install twine flake8
-
-script:
-  - twine check dist/*
-  - flake8
-  - nosetests
-
-jobs:
+install: make install
+script: make test
+notifications:
+  slack:
+    secure: qTTpPJZRjkFNlWUQd4M4odA+/QnuEqoD3ole8tQA+oFo2hzA7toQbAorgKd20mJ0VMLbrTxUDeCHwuLH6EYs0k9gnaDx7J8gaohW3ePHU6vncGfSh/9r8jCLHOdD/23ySm6D4TKR5SV7izNS+4WyqLqeLugdk5rFCwW4JJS118U=
+  email: false
+matrix:
   include:
-    - stage: deploy
-      name: Upload release to PyPI
-      if: tag is present
-      script: twine upload dist/*
-      env:
-        - TWINE_USERNAME: coldfix-deploy
-        # TWINE_PASSWORD
-        - secure: "d8WYCQ56Se9Y9Z+GIwfLnMRgzfqiPm73XL8Cv3QBAeK/iyN8tsfoVknh5jqMv8ENwKVjuJ4jdCcNH4woW9aJQScPP7ZrOFBGGM+qOSZkCZZ4yOBtdU/oH0pb/eo5CmM/HeoszoZXzAjx3NDNFyQL9otIZNW2VnfBsfjTRgzMmW0="
+    - os: linux
+      dist: bionic
+      python: 3.5
+    - os: linux
+      dist: bionic
+      python: 3.6
+    - os: linux
+      dist: bionic
+      python: 3.7
+    - os: linux
+      dist: bionic
+      python: 3.8
+    - os: linux
+      dist: bionic
+      python: pypy3
