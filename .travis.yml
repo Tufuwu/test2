@@ -1,12 +1,36 @@
-dist: focal
 language: python
-matrix:
+os: linux
+dist: bionic
+cache: pip
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+  - pypy3
+env:
+  - FLAVOUR=signxml
+jobs:
   include:
-    - python: "3.6"
-    - python: "3.7"
-    - python: "3.8"
-    - python: "3.9"
-    - python: "pypy3"
-install: pip install Markdown pymdown-extensions docutils textile pygments codecov
-script: coverage run setup.py test
-after_success: codecov
+  - python: 2.7
+    env: FLAVOUR=legacy
+  - python: 2.7
+    env: FLAVOUR=legacy-defusedxml
+  - python: 2.7
+    env: FLAVOUR=lxml
+  - python: 2.7
+    env: FLAVOUR=lxml-defusedxml
+  - python: 3.6
+    env: FLAVOUR=legacy
+  - python: 3.6
+    env: FLAVOUR=legacy-defusedxml
+  - python: 3.6
+    env: FLAVOUR=lxml
+  - python: 3.6
+    env: FLAVOUR=lxml-defusedxml
+  - python: 3.6
+    env: TOXENV=flake8
+  - python: 3.6
+    env: TOXENV=docs
+install: pip install tox
+script: tox -e "${TOXENV:-$(echo py${TRAVIS_PYTHON_VERSION}-${FLAVOUR} | tr -d . | sed -e 's/pypypy/pypy/')}" --skip-missing-interpreters false
