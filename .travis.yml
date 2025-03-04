@@ -1,23 +1,35 @@
-branches:
-  only:
-    - master
 language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-install: 
-  - pip install tox-travis
-  - pip install codecov
-matrix:
-  include:
-    - python: 3.8
-      env: TOXENV=lint
-    - python: 3.8
-      env: TOXENV=docs
-    - python: 3.8
-      env: TOXENV=isort
-script: tox
+jobs:
+    include:
+        - os: linux
+          dist: bionic
+          python: 2.7
+        - os: linux
+          dist: xenial
+          python: 3.4
+        - os: linux
+          dist: xenial
+          python: 3.5
+        - os: linux
+          dist: bionic
+          python: 3.6
+        - os: linux
+          dist: bionic
+          python: 3.7
+        - os: linux
+          dist: bionic
+          python: 3.8
+
+# install python dependencies including this package in the travis
+# virtualenv
+install:
+  - ./provision/python.sh
+
+script:
+    - pycodestyle mediawiki/
+    - coverage run --source=mediawiki setup.py test
+    - ./scripts/py-lint.sh
+
+# commands to run after the tests successfully complete
 after_success:
-  - codecov
+  - coveralls
