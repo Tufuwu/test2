@@ -1,29 +1,36 @@
-language: python
+language: generic
 
-notifications:
-  email: false
-  
-python:
-    - 3.6
-    - 3.7
-    - 3.8
-  
+dist: bionic
+sudo: required
+
+cache:
+  directories:
+  - cache
+
+env:
+  global:
+  - MAKEFLAGS=-j2
+  - PYTHON3=/usr/bin/python3 # avoid /opt/python
+
 before_install:
-    - pip install pep8 flake8 black==19.10b0 mypy
-  
-before_script:
-    - flake8 --show-source --ignore=F811,W293,W391,W292,W291,E252,W503,E203 --max-line-length=79 --exclude='conf.py,__init__.py';
-    - black . --check -l 79;
-    - mypy efficient_apriori/*.py --ignore-missing-imports --show-error-context;
+- sudo apt-get update -qq
+- sudo apt-get install -qq -y --no-install-recommends python3-cairo python3-pil python3-htmlmin p7zip
+- $PYTHON3 --version
 
 script:
-    - pip install -r requirements.txt
-    - pip install pytest
-    - pip install .
-    - pytest --doctest-modules -v efficient_apriori
-    - # If 'TRAVIS_PULL_REQUEST_BRANCH' is empty and we're on master, then deploy
-    - if [[ -z "$TRAVIS_PULL_REQUEST_BRANCH" && "$TRAVIS_PULL_REQUEST" == 'false' && "$TRAVIS_BRANCH" == 'master' ]]; then
-      pip install twine;
-      python setup.py sdist bdist_wheel;
-      python -m twine upload dist/* -u tommyod -p $TWINE --skip-existing;
-      fi
+- make
+
+before_deploy:
+- 7zr a dictionaries-"$TRAVIS_TAG".7z jmdict.mobi jmnedict.mobi combined.mobi
+
+deploy:
+  provider: releases
+  api_key:
+    secure: ADYMOS6UQXiCrnItfzWC8rqLz9pblXymWba2YSOJvyLZQVRoorX9R9mOzMWGIjSDJXpNPfg/yn9jcyFOYFF2lnAKWlZjUUB5375VFTRXl2JtVMmOS7dLsJTCGmor5VWCUlIyrfsIpEO71+q9ml3A+HkKGr+Y4en7W5A0DZdk65Q=
+  file_glob: true
+  file: dictionaries-*.7z
+  skip_cleanup: true
+  on:
+    repo: jrfonseca/jmdict-kindle
+    tags: true
+    all_branches: true
