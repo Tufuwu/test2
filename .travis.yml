@@ -1,23 +1,16 @@
 dist: xenial
 language: python
 python:
-  - "2.7"
-  - "3.7"
-cache: pip
-
+    - 3.5
+    - 3.6
+    - 3.7
+    - 3.8-dev
 install:
-  - pip install pipenv
-  - pipenv install --dev --system
-
-before_script:
-  # stop the build if there are Python syntax errors or undefined names
-  - flake8 .
-  # exit-zero treats all errors as warnings.
-  - flake8 . --exit-zero --select=C,E,F,W
-
+    - pip install -r requirements.txt
+    - pip install -r requirements-dev.txt
+    - pip install -e .
 script:
-  - pytest
-
-notifications:
-  irc: "chat.freenode.net#wee-slack-dev"
-  email: false
+    - flake8
+    - pytest --cov
+after_success:
+    - coveralls
