@@ -1,24 +1,16 @@
-language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-cache: pip
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+sudo: required
+
+services:
+  - docker
+
+env:
+  matrix:
+    - CI_ROS_DISTRO="kinetic" PYTHON="python"
+    - CI_ROS_DISTRO="melodic" PYTHON="python"
+    - CI_ROS_DISTRO="noetic"  PYTHON="python3"
+
 install:
-  - pip install --upgrade pip
-  - pip install --upgrade importlib-metadata  # Solve a python 3.7 install bug: https://app.travis-ci.com/github/IBM/causallib/jobs/566048347
-  - pip install --upgrade pytest coverage
-  - pip install .  # test local installation is running properly
-  - pip install .[contrib]  # test optional install
+  - docker build -t rospy_message_converter_$CI_ROS_DISTRO -f Dockerfile-$CI_ROS_DISTRO .
+
 script:
-  - pip freeze --all
-  - coverage run --source=. --omit=*__init__.py,setup.py -m pytest
-after_success:
-  - coverage report
-  - coverage xml
-  - ./cc-test-reporter after-build
+  - docker run rospy_message_converter_$CI_ROS_DISTRO /bin/bash -c "source devel/setup.bash && CTEST_OUTPUT_ON_FAILURE=1 catkin_make test && roscd rospy_message_converter && $PYTHON src/rospy_message_converter/json_message_converter.py && $PYTHON src/rospy_message_converter/message_converter.py"
