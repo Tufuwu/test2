@@ -1,106 +1,51 @@
-cache:
-  pip: true
-  directories:
-    - .stestr
-
-install_osx: &stage_osx
-  os: osx
-  osx_image: xcode9.2
-  language: generic
-  cache:
-    pip: true
-    directories:
-      - ~/python-interpreters/
-      - .stestr
-  before_install:
-    # Travis does not provide support for Python 3 under osx - it needs to be
-    # installed manually.
-    |
-    if [ ${TRAVIS_OS_NAME} = "osx" ]; then
-      if [[ ! -d ~/python-interpreters/$PYTHON_VERSION ]]; then
-        git clone git://github.com/pyenv/pyenv.git
-        cd pyenv/plugins/python-build
-        ./install.sh
-        cd ../../..
-        python-build $PYTHON_VERSION ~/python-interpreters/$PYTHON_VERSION
-      fi
-      virtualenv --python ~/python-interpreters/$PYTHON_VERSION/bin/python venv
-      source venv/bin/activate
-    fi
-
-stages:
- - lint_and_python
- - all_python
-
-matrix:
-  fast_finish: true
-  include:
-    - python: "3.5"
-      env: TOXENV=py35
-      name: "Python 3.5 Tests"
-      stage: all_python
-    - python: "3.6"
-      env: TOXENV=py36
-      name: "Python 3.6 Tests"
-      stage: all_python
-    - os: linux
-      dist: xenial
-      python: "3.7"
-      env: TOXENV=py37
-      name: "Python 3.7 Tests"
-      stage: lint_and_python
-    - os: linux
-      dist: xenial
-      python: "3.8"
-      env: TOXENV=py38
-      name: "Python 3.8 Tests"
-      stage: all_python
-    - python: "3.7"
-      dist: xenial
-      env: TOXENV=lint
-      name: "Linter Checks"
-      stage: lint_and_python
-    - stage: all_python
-      name: "Python 3.5 Tests on OSX"
-      <<: *stage_osx
-      env:
-        - MPLBACKEND=ps
-        - PYTHON_VERSION=3.5.9
-        - TOXENV=py35
-    - stage: all_python
-      name: "Python 3.6 Tests on OSX"
-      <<: *stage_osx
-      env:
-        - MPLBACKEND=ps
-        - PYTHON_VERSION=3.6.10
-        - TOXENV=py36
-    - stage: lint_and_python
-      <<: *stage_osx
-      name: "Python 3.7 Tests on OSX"
-      env:
-        - MPLBACKEND=ps
-        - PYTHON_VERSION=3.7.6
-        - TOXENV=py37
-    - stage: all_python
-      <<: *stage_osx
-      name: "Python 3.8 Tests on OSX"
-      env:
-        - MPLBACKEND=ps
-        - PYTHON_VERSION=3.8.1
-        - TOXENV=py38
-    - if: tag IS present
-      python: "3.6"
-      env:
-        - TWINE_USERNAME=qiskit
-      install: pip install -U twine
-      script:
-        - python3 setup.py sdist bdist_wheel
-        - twine upload dist/qiskit*
-
 language: python
-install: pip install -U tox pip virtualenv setuptools six
-script:
-  - tox
+dist: bionic
+os: linux
 
-notifications:
-  email: false
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+sudo: false
+
+before_install:
+  - pip install --upgrade setuptools==49.6.0
+  - pip install --upgrade pip==18.1
+  - pip install -r "requirements.txt"
+  - pip install flake8
+  - pip install coveralls
+  - gem install github-linguist
+  - pip install bandit
+  - pip install pylint
+  - pip install execnet
+  - wget https://github.com/fossology/fossology/releases/download/3.8.1/FOSSology-3.8.0-debian9stretch.tar.gz
+  - tar -xzf FOSSology-3.8.0-debian9stretch.tar.gz
+  - sudo apt-get update -y
+  - sudo apt-get -y install ./packages/fossology-common_3.8.1-1_amd64.deb ./packages/fossology-nomos_3.8.1-1_amd64.deb
+  - sudo apt-get install cloc
+  - eval "$(gimme stable)"
+
+install:
+  - ./setup.py install
+
+before_script:
+  - mkdir exec
+  - cd exec
+  - go get -u github.com/boyter/scc/
+  - cd /home/travis/build/chaoss/grimoirelab-graal/exec
+  - git clone https://github.com/nexB/scancode-toolkit.git
+  - cd scancode-toolkit
+  - git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
+  - ./scancode --help
+  - cd /home/travis/build/chaoss/grimoirelab-graal/exec
+  - wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
+  - cd /home/travis/build/chaoss/grimoirelab-graal
+
+script:
+  - flake8 . --exclude=exec
+  - cd tests
+  - coverage run --source=graal run_tests.py
+
+after_success:
+  - coveralls
