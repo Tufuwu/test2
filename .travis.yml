@@ -1,17 +1,11 @@
-sudo: required  # for 3.7, see https://github.com/travis-ci/travis-ci/issues/9069#issuecomment-425720905
-language: python
-dist: xenial
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9-dev"
-jobs:
-  include:
-  - python: "3.8"
-    env: TOXENV=lint
-install: pip install tox-travis
-script: tox
+---
+version: ~> 1.0
+language: ruby
+
+script: |
+  if [[ ${TRAVIS_EVENT_TYPE} == cron ]]; then
+     curl -s -X POST \
+      -d "branches=${TRAVIS_BRANCH}" \
+      -d "token=${RTD_TOKEN}" \
+      https://readthedocs.org/api/v2/webhook/nethserver-devel/49560/
+  fi
