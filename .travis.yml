@@ -1,14 +1,23 @@
----
-os: linux
 dist: xenial
 language: python
-python: "3.6"
-
+python:
+  - "2.7"
+  - "3.7"
 cache: pip
 
-install: pip install idr-utils/
+install:
+  - pip install pipenv
+  - pipenv install --dev --system
+
+before_script:
+  # stop the build if there are Python syntax errors or undefined names
+  - flake8 .
+  # exit-zero treats all errors as warnings.
+  - flake8 . --exit-zero --select=C,E,F,W
 
 script:
-  - find idr* -type f -name '*.screen' -print0 | xargs -0 -n1 python idr-utils/scripts/check_screen.py -v
-  - find . -type f -name '*study.txt' | sort | xargs python idr-utils/pyidr/study_parser.py -v
-  - python idr-utils/scripts/travis-check.py
+  - pytest
+
+notifications:
+  irc: "chat.freenode.net#wee-slack-dev"
+  email: false
