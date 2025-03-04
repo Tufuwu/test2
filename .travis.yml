@@ -1,17 +1,18 @@
-name: publish
-on:
-  push:
-    branches-ignore:
-      - *
-    tags:
-      - *
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-    - name: publish to PyPi
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+os: linux
+dist: focal
+git:
+  depth: false
+language: python
+python:
+- '3.7'
+- '3.8'
+- '3.9'
+- '3.10'
+- '3.11'
+install:
+- pip install tox-travis
+script:
+- tox
+notifications:
+  slack:
+    secure: EGRRrJTmGIugRHbD1lgRXRkIVH/ksvOwxHaH4sbty14ueU1HontKJDNfizGQIEax8iA8PY96FovmdNtNHmf/dAZ945KehYEVVUMwWFoFQgqPzFOZKuPdsbK814Tmay0Wzb+k3F8lCfl31BkG0QCIPAtGemM01HlGW9jff+ekwpE=
