@@ -1,22 +1,20 @@
-language: python
+os: linux
+dist: bionic
+language: generic
 
-python:
-  - "2.7"
-  - "3.6"
+env:
+  global:
+    - BEFORE_INIT="apt-get install -y -q python-pip && pip install --upgrade pip && hash -r pip && pip install --upgrade enum34 pyasn1-modules 'tensorflow>=2.1' 'keras<2.4' --progress-bar=off"
 
-matrix:
+jobs:
   include:
-    - python: 3.7
-      dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
-      sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
+    - name: "kinetic"
+      env: ROS_DISTRO=kinetic
+    - name: "melodic"
+      env: ROS_DISTRO=melodic
 
 install:
-  - pip install flake8 coverage codecov
+  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
 
-script: 
-  - "flake8"
-  - "coverage run --source=pdbtools/ setup.py test"
-  - "coverage xml"
-
-after_success:
-  - "codecov --file coverage.xml -X pycov -X gcov"
+script:
+  - .ci_config/travis.sh
