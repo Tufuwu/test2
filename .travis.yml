@@ -1,54 +1,97 @@
-# Based on https://github.com/cclauss/Travis-CI-Python-on-three-OSes
-jobs:
-  include:
-    - name: "Python 3.7.4 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      install:
-        - choco install python --version=3.7.4
-        - python -m pip install --upgrade pip
-        - pip3 install tox==3.14.2
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
-      script: tox -e tests
-      after_success: python -m coveralls
-    - name: "Python 3.8 on Bionic Linux"
-      language: python
-      python: 3.8
-      dist: bionic
-      install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo apt-get update
-        - sudo apt-get install -y solc
-        - pip install tox==3.14.2
-      script: tox -e tests
-      after_success: python -m coveralls
-    - name: "Python 3.7 on Bionic Linux"
-      language: python
-      python: 3.7
-      dist: bionic
-      install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo apt-get update
-        - sudo apt-get install -y solc
-        - pip install tox==3.14.2
-      script: tox -e lint,tests
-      after_success: python -m coveralls
-    - name: "Python 3.6 on Bionic Linux"
-      language: python
-      python: 3.6
-      dist: bionic
-      install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo apt-get update
-        - sudo apt-get install -y solc
-        - pip install tox==3.14.2
-      script: tox -e tests
-      after_success: python -m coveralls
+dist: xenial
 
-env:
-  global: COVERALLS_PARALLEL=true
+language: python
+
+python:
+
+  - "3.6"
+
+  - "3.7"
+
+  - "3.8"
+
+
+
+addons:
+
+  apt_packages:
+
+    - gfortran
+
 
 
 notifications:
+
   email: false
-  webhooks: https://coveralls.io/webhook
+
+
+
+install:
+
+  - sudo apt-get update
+
+  - sudo apt-get install cmake libboost-python-dev
+
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+
+  - bash miniconda.sh -b -p $HOME/miniconda
+
+  - export PATH="$HOME/miniconda/bin:$PATH"
+
+  - hash -r
+
+  - conda config --set always_yes yes --set changeps1 no
+
+  - conda update -q conda
+
+  # Useful for debugging any issues with conda
+
+  - conda info -a
+
+
+
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pytorch cpuonly -c pytorch
+
+  - source activate test-environment
+
+  - travis_retry pip install --upgrade pip setuptools wheel
+
+  - travis_retry pip install -r requirements.txt
+
+  - python setup.py install
+
+  - pip install --upgrade pytest
+
+
+
+# Upload the new version to conda, if successful 
+
+after_success:
+
+  if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]] &&
+
+     ([ "$TRAVIS_BRANCH" == "master" ]  && [ "$TRAVIS_PULL_REQUEST" == "false" ]); then
+
+      conda install conda-build && conda install anaconda-client && bash conda/conda_upload.sh; 
+
+  fi
+
+
+
+script:
+
+  - pytest test/
+
+
+
+matrix:
+
+  include:
+
+    - env: LINT_CHECK
+
+      python: "3.6"
+
+      install: pip install flake8
+
+      script: flake8
