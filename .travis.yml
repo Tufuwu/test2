@@ -1,53 +1,42 @@
-# Wire up travis
+---
+# Adapted from
+# - https://github.com/drhelius/travis-ansible-demo/blob/master/.travis.yml
+# - https://github.com/geerlingguy/ansible-role-docker/blob/master/.travis.yml
 language: python
-sudo: false
+services:
+  - docker
 
-matrix:
-    include:
-        - python: 2.7
-          env: TOXENV=py27
-        - python: 3.4
-          env: TOXENV=py34
-        - python: 3.5
-          env: TOXENV=py35
-        - python: 3.6
-          env: TOXENV=py36
-        - python: 3.7
-          env: TOXENV=py37
-          dist: xenial
-          sudo: true
-        - python: 3.8
-          env: TOXENV=py38
-          dist: xenial
-          sudo: true
-        - python: pypy
-          env: TOXENV=pypy
-        - python: pypy3
-          env: TOXENV=pypy3
-        - python: 3.5
-          env: TOXENV=py27-cover,py35-cover,coverage
-        - python: 3.5
-          env: TOXENV=docs
-        - python: 2.7
-          env: TOXENV=py27-pyramid14
-        - python: 3.5
-          env: TOXENV=py35-pyramid19
+env:
+  global:
+    - ANSIBLE_ROLE: dokku_bot.ansible_dokku
+
+  matrix:
+    - MOLECULE_DISTRO: ubuntu1804
+    - MOLECULE_DISTRO: ubuntu1604
+    - MOLECULE_DISTRO: debian10
+    - MOLECULE_DISTRO: debian9
 
 install:
-  - travis_retry pip install -U setuptools
-  - travis_retry pip install -U pip
-  - travis_retry pip install -U tox
+  - pip install -r requirements.txt
+  - ansible --version
+
+before_script:
+  # Use actual Ansible Galaxy role name for the project directory.
+  - cd ../
+  - mv ansible-dokku $ANSIBLE_ROLE
+  - cd $ANSIBLE_ROLE
 
 script:
-  - travis_retry tox
-
-cache:
-  directories:
-    - $HOME/.cache/pip
+  # Check that README etc. is up to date
+  - >
+    make generate;
+    if [[ $(git diff) ]]; then
+      echo "Please run `make generate`";
+      git status --short;
+      git diff;
+      exit 1;
+    fi
+  - molecule test
 
 notifications:
-  email:
-    - pyramid-checkins@lists.repoze.org
-  irc:
-    channels:
-      - "chat.freenode.net#pyramid"
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
