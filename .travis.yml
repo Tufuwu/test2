@@ -1,20 +1,28 @@
-calanguage: python
-sudo: required
-dist: xenial
+dist: bionic
+language: python
 
 python:
-  - "3.7"  
-  - "3.8"
+- 2.7
+- 3.6
+- 3.7
+- 3.8
+- &latest_py3 3.9
 
-before_install:
-  - pip install -U pip
+env:
+- TOXENV=libs
+- TOXENV=sa10
+- TOXENV=sa11
+- TOXENV=sa12
+- TOXENV=sa13
+
+cache: pip
 
 install:
-  - pip install .[dev]  
+- pip install tox tox-venv
 
-script:
-  - python -m quantumflow.about
-  - python -m pytest --cov=quantumflow --cov-fail-under 100
-  - flake8
-  - mypy quantumflow
-  - sphinx-build -M html docs docs/_build
+before_script:
+  # Enable IPv6. Ref travis-ci/travis-ci#8361
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6';
+    fi
+script: tox
