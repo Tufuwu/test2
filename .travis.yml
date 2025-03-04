@@ -1,28 +1,38 @@
 dist: bionic
 language: python
 
-python:
-- 2.7
-- 3.6
-- 3.7
-- 3.8
-- &latest_py3 3.9
-
 env:
-- TOXENV=libs
-- TOXENV=sa10
-- TOXENV=sa11
-- TOXENV=sa12
-- TOXENV=sa13
+  global:
+    - DIRECTOR_HOME=${TRAVIS_BUILD_DIR}/tests/workflows/
+  jobs:
+    - DB=sqlite DIRECTOR_DATABASE_URI=sqlite:////tmp/tests.db
+    - DB=postgres DIRECTOR_DATABASE_URI=postgresql://localhost:5432/tests
 
-cache: pip
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+services:
+  - redis-server
+  - postgresql
+
+before_install:
+  - pip install black==20.8b1
+  - pip install pytest==5.3.5
+  - pip install mkdocs==1.0.4
+  - pip install mkdocs-material==4.6.3
 
 install:
-- pip install tox tox-venv
+  - python setup.py install
 
 before_script:
-  # Enable IPv6. Ref travis-ci/travis-ci#8361
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-      sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6';
-    fi
-script: tox
+  - black --check director
+  - (cd docs && mkdocs build)
+  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'DROP DATABASE IF EXISTS tests;' -U postgres; fi"
+  - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'CREATE DATABASE tests;' -U postgres; fi"
+
+script:
+  - director celery worker -P solo > /dev/null 2>&1 &
+  - sleep 5
+  - pytest tests/ -v
