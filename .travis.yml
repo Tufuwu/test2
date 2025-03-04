@@ -1,28 +1,99 @@
+os: linux
+
+
+
+dist: bionic
+
+
+
 language: python
-sudo: required
-dist: xenial
+
+
+
 python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
-env:
-  - DJANGO_VERSION=1.8
-  - DJANGO_VERSION=1.11
-  - DJANGO_VERSION=2.0
-  - DJANGO_VERSION=2.1
-  - DJANGO_VERSION=2.2
-matrix:
-  exclude:
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.0'
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.1'
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.2'
+
+  - "3.7"
+
+  - "3.8"
+
+  - "3.9"
+
+  - "3.10"
+
+
+
+# TODO eventually I want a better build matrix here, i.a. for numpy versions
+
+
+
+cache:
+
+  pip: true
+
+  directories:
+
+    - "$HOME/.cache/pypoetry"
+
+
+
 install:
-  - pip install -U django==$DJANGO_VERSION
-  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then pip install black; fi'
+
+  - pip install poetry
+
+  - poetry install
+
+
+
+git:
+
+  depth: 3
+
+
+
+branches:       # since the master branch is the only one where PRs are
+
+  only:         # merged in.
+
+    - master
+
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/    # for release tags
+
+
+
 script:
-  - python manage.py test
-  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then black --check zen_queries; fi'
+
+  - poetry run pytest
+
+  - poetry run mypy alns
+
+
+
+before_deploy:
+
+  - poetry config http-basic.pypi $PYPI_USER $PYPI_PASS
+
+  - poetry build
+
+
+
+deploy:
+
+  provider: script
+
+  script: poetry publish
+
+  skip_cleanup: true
+
+  on:
+
+    # Deploy to PyPI on tagged commits, from the latest Python version
+
+    tags: true
+
+    condition: "$TRAVIS_PYTHON_VERSION == 3.9"
+
+
+
+after_success:
+
+  - codecov
