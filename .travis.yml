@@ -1,14 +1,11 @@
+dist: xenial
 sudo: false
 language: python
-dist: xenial
 python:
-  - 3.6
-  - 3.7
-  - 3.8
-install: pip install -r dev-requirements.txt
-script:
-  - flake8 sendgrid_backend/
-  - isort -c ./
-  - black --check ./
-  - mypy sendgrid_backend/
-  - tox
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+install:
+  - pip install .[tests]
+script: py.test
