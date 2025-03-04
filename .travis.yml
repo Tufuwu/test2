@@ -1,40 +1,50 @@
-# Config file for automatic testing at travis-ci.org
+language: python
+dist: focal
 
-dist: xenial
-
-sudo: required
-
-# My very smart trick to force inclusion of the veth kernel module
-# (even though we do not use docker at all her)
-services:
-  - docker
-
-addons:
-  apt:
-    packages:
-      - python-dev
-      - python-pip
-      - cmake
-      - libffi-dev
-      - python3-dev
-      - python3-pip
+jobs:
+    fast_finish: true
+    include:
+        - { python: "2.7", env: DJANGO="1.11" }
+        - { python: "3.5", env: DJANGO="1.11" }
+        - { python: "3.6", env: DJANGO="1.11" }
+        - { python: "3.7", env: DJANGO="1.11" }
+        - { python: "3.5", env: DJANGO="2.0" }
+        - { python: "3.6", env: DJANGO="2.0" }
+        - { python: "3.7", env: DJANGO="2.0" }
+        - { python: "3.5", env: DJANGO="2.1" }
+        - { python: "3.6", env: DJANGO="2.1" }
+        - { python: "3.7", env: DJANGO="2.1" }
+        - { python: "3.5", env: DJANGO="2.2" }
+        - { python: "3.6", env: DJANGO="2.2" }
+        - { python: "3.7", env: DJANGO="2.2" }
+        - { python: "3.8", env: DJANGO="2.2" }
+        - { python: "3.6", env: DJANGO="3.0" }
+        - { python: "3.7", env: DJANGO="3.0" }
+        - { python: "3.8", env: DJANGO="3.0" }
+        - { python: "3.9", env: DJANGO="3.0" }
+        - { python: "3.6", env: DJANGO="3.1" }
+        - { python: "3.7", env: DJANGO="3.1" }
+        - { python: "3.8", env: DJANGO="3.1" }
+        - { python: "3.9", env: DJANGO="3.1" }
+        - { python: "3.6", env: DJANGO="3.2" }
+        - { python: "3.7", env: DJANGO="3.2" }
+        - { python: "3.8", env: DJANGO="3.2" }
+        - { python: "3.9", env: DJANGO="3.2" }
+        - { python: "3.10", env: DJANGO="3.2" }
+        - { python: "3.8", env: DJANGO="4.0" }
+        - { python: "3.9", env: DJANGO="4.0" }
+        - { python: "3.10", env: DJANGO="4.0" }
+        - { python: "3.8", env: DJANGO=master }
+        - { python: "3.9", env: DJANGO=master }
+        - { python: "3.10", env: DJANGO=master }
+    allow_failures:
+        - env: DJANGO=master
 
 before_install:
-  - sudo apt-get install ethtool
-  - sudo apt-get remove python-scapy
-  - git clone https://github.com/p4lang/scapy-vxlan.git && cd scapy-vxlan && sudo python setup.py install && cd ..
-  - bash CI/travis/install-nanomsg.sh
-  - sudo ldconfig
-  - bash CI/travis/install-nnpy.sh
-  - sudo pip3 install nose2
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -U importlib_metadata; fi
 
 install:
-  - sudo python setup.py install
-
-before_script:
-  - cd ptf_nn/; sudo ./veth_setup.sh; cd ..
+    - pip install tox tox-venv tox-travis
 
 script:
-  - python CI/travis/check-nnpy.py
-  - ./CI/travis/run_tests.sh
-  - sudo python3 /usr/local/bin/nose2 utests.tests
+    - tox
