@@ -1,57 +1,29 @@
+sudo: false
 language: python
-python:
+dist: xenial # default is ubuntu 14.04, we need at least 16.04
+python: # test various python versions
   - "3.5"
   - "3.6"
   - "3.7"
-
+  - "3.8"
+  - "pypy3"
 env:
-  global:
-    - PYTHONWARNINGS="default,ignore::PendingDeprecationWarning,ignore::ResourceWarning"
-  matrix:
-    - DB="POSTGRESQL"
-    - DB="MYSQL"
-
-sudo: false
-
-cache: pip
-
-addons:
-  postgresql: "9.6"
-  mysql: "5.5"
-
-services:
-  - postgres
-  - mysql
-
-before_install:
-  - pip install codecov
-  - pip install -e git+https://github.com/modoboa/modoboa.git#egg=modoboa
-
-install:
-  - pip install -r requirements.txt
-  - pip install -r test-requirements.txt
-  - python setup.py develop
-
-script:
-  - cd test_project
-  - coverage run --source ../modoboa_amavis manage.py test modoboa_amavis
-
-after_success:
-  - codecov
-
-before_deploy:
-  - cd ../modoboa_amavis
-  - django-admin compilemessages
-  - cd ..
-
-deploy:
-  provider: pypi
-  user: tonio
-  password:
-    secure: qtRkmcbA9tbqFw0IK/liCuKszeXDrUC9iI7j3Q4x0jxx7OW8bnn0JqGl45IuKaaSIt1M3PIP0T82h3S+DqBoGfE0xuH4Oe2WwvP76p8afjeOHjoRVOhKihTAZZXsBA2jEteNiDibiu7ezpMXQNaO+BnfYqUJ3ATZJD7xIRNigHo=
-  skip_cleanup: true
-  distributions: "sdist bdist_wheel"
-  on:
-    tags: true
-    python: "3.7"
-    condition: $DB = POSTGRESQL
+  - DJANGO=2.2
+  - DJANGO=3.0
+  - DJANGO=3.1
+  - DJANGO=master
+matrix:
+  exclude:
+    # Django >= 3.0 does not support Python3.5 anymore
+    - { python: "3.5", env: DJANGO=3.0 }
+    - { python: "3.5", env: DJANGO=3.1 }
+    - { python: "3.5", env: DJANGO=master }
+  allow_failures:
+    # newer python versions aswell as pypy may also always break our build
+    - python: "pypy3"
+    - env: DJANGO=master
+cache:
+  directories:
+    - $HOME/.cache/pip
+install: pip install tox-travis
+script: tox
