@@ -1,26 +1,29 @@
 language: python
+cache: pip
 
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-
-os:
-  - linux
-
-sudo: false
+matrix:
+  include:
+    - python: 2.7
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+    - python: 3.8
+    - python: 3.9-dev
+    - python: pypy
+    - python: pypy3
 
 install:
-  # add brotli for tests
-  - pip install brotlipy
-  - python setup.py install
-  - pip install coverage pytest-cov codecov
-  - pip install 'jinja2<3.0.0'
-  - pip install 'itsdangerous<2.0.0'
+ - pip install coverage
 
 script:
-  - python setup.py test
+ - coverage run --source=olefile -m nose tests
 
 after_success:
-  - codecov
+ - pip install coveralls
+ - coveralls
+
+after_script:
+ - coverage report
+ - pip install pycodestyle pyflakes
+ - pyflakes .
+ - pycodestyle --statistics --count .
