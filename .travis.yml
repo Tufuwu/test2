@@ -1,47 +1,37 @@
 language: python
-sudo: required
-python:
-  - 2.7
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
-  - pypy
-  - pypy3
 
-matrix:
-  include:
-    - language: generic
-      python: 2.7
-      os: osx
+python:
+  - 3.8
+
+cache:
+  pip:
+  apt:
+  directories:
+    - .tox
+
+env:
+ - DJANGO="2.0"
+ - DJANGO="2.1"
+ - DJANGO="2.2"
+ - DJANGO="3.0"
+ - DJANGO="3.1"
 
 before_install:
-  - python -m pip install --quiet --upgrade pip codecov
-  # OSX tests require https://github.com/pypa/pip/pull/6008 (added in 19.2)
-  # in order to address https://stackoverflow.com/questions/24257803
-  # (the fix recommended there does not appear to work without it).
-  # However it no longer works after https://github.com/pypa/pip/issues/7309
-  # (added in 20.2), so we must specifically install a version between these.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m pip install 'pip>=19.2,<20.2'; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install fish; fi
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq $APT
 
-install:
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then python setup.py bdist_rpm; fi
-  - make install
-
-script:
-  - make test
+after_failure:
+ - cat /home/travis/.pip/pip.log
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+ - coveralls
 
-addons:
-  apt:
-    sources:
-      - sourceline: 'ppa:fish-shell/release-3'
-    packages:
-      - rpm
-      - tcsh
-      - fish
+install:
+ - pip install pip wheel
+ - pip install tox-travis
+ - pip install -q coveralls flake8 tox
+
+script:
+ - env | sort
+ - tox
+ - flake8 --show-source --max-line-length=80 --exclude=.tox,docs,django_comments_xtd/tests,django_comments_xtd/__init__.py,django_comments_xtd/migrations django_comments_xtd/
