@@ -1,29 +1,17 @@
-language: python
-cache: pip
+name: publish
+on:
+  push:
+    branches-ignore:
+      - *
+    tags:
+      - *
 
-matrix:
-  include:
-    - python: 2.7
-    - python: 3.5
-    - python: 3.6
-    - python: 3.7
-    - python: 3.8
-    - python: 3.9-dev
-    - python: pypy
-    - python: pypy3
-
-install:
- - pip install coverage
-
-script:
- - coverage run --source=olefile -m nose tests
-
-after_success:
- - pip install coveralls
- - coveralls
-
-after_script:
- - coverage report
- - pip install pycodestyle pyflakes
- - pyflakes .
- - pycodestyle --statistics --count .
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: publish to PyPi
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
