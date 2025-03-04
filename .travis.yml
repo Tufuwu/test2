@@ -1,17 +1,22 @@
-# this file is *not* meant to cover or endorse the use of travis, but rather to
-# help confirm pull requests to this project.
-
 language: python
-
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-
-install: pip install tox-travis
-
-script: tox
-
+python: 3.6
+cache: pip
+addons:
+  postgresql: "9.4"
+services:
+  - postgresql
+env:
+  global:
+    - DATABASE_URL=postgres://postgres:@127.0.0.1:5432/python.org
+install: pip install -r dev-requirements.txt
+before_script:
+  - psql -c 'create database "python.org";' -U postgres
+script:
+  - python -Wd -m coverage run manage.py test -v2
+  - coverage report -m --fail-under=75
 notifications:
-  email: false
+  irc:
+    channels:
+      - "irc.freenode.net#pydotorg"
+    on_success: change
+    on_failure: always
