@@ -1,14 +1,20 @@
-language: python
+calanguage: python
+sudo: required
+dist: xenial
+
 python:
-  - "3.6"
-  - "3.7"
+  - "3.7"  
   - "3.8"
-  - "3.9"
+
+before_install:
+  - pip install -U pip
 
 install:
-  - pip install -r requirements.txt
-  - pip install aiosqlite
+  - pip install .[dev]  
 
 script:
-  - cd tests
-  - ./test.py
+  - python -m quantumflow.about
+  - python -m pytest --cov=quantumflow --cov-fail-under 100
+  - flake8
+  - mypy quantumflow
+  - sphinx-build -M html docs docs/_build
