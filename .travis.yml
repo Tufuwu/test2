@@ -1,28 +1,17 @@
-language: python
+sudo: required
 
-sudo: false
+dist: trusty
 
-matrix:
-  include:
-    - python: 3.10-dev
-      env: TOXENV=py310
-    - python: 3.9
-      env: TOXENV=py39
-    - python: 3.8
-      env: TOXENV=py38
-    - python: 3.7
-      env: TOXENV=py37
-    - python: 3.6
-      env: TOXENV=py36
+language: generic
+
+services:
+  - docker
 
 install:
-  - pip install -U setuptools tox pip virtualenv
-  - pip install -e .
-  - pip install pytest-cov codecov -r tests/requirements.txt
+  - docker build -t p4lang/p4runtime-sh .
+  - docker build -t p4lang/p4runtime-sh-dev  -f Dockerfile.dev .
 
 script:
-  - tox
-
-after_success:
-  - py.test tests/ example/ --cov=./
-  - codecov
+  - docker run -ti p4lang/p4runtime-sh-dev bash -c "source venv/bin/activate && flake8 p4runtime_sh config_builders"
+  - ci_env=`bash <(curl -s https://codecov.io/env)`
+  - docker run $ci_env -ti p4lang/p4runtime-sh-dev bash -c "source venv/bin/activate && nose2 --with-coverage p4runtime_sh config_builders && codecov"
