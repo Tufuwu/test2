@@ -1,62 +1,47 @@
-sudo: true
-merge_mode: replace   # for custom builds
-language: cpp
+language: python
+dist: trusty
+sudo: required
+branches:
+  only:
+    - develop
+    - master
 matrix:
   include:
-    - os: osx
-      osx_image: xcode10.1
-      name: osx
-    - os: linux
-      dist: bionic
-      name: bionic linux, python3.6
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            - python3.6-dev
-            - python3-pip
-            - python3-setuptools
-    - os: linux
-      dist: bionic
-      name: bionic linux, python3.7
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            - python3.7-dev
-            - python3-pip
-            - python3-setuptools
-    - os: linux
-      dist: bionic
-      name: bionic linux, python3.8
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            - python3.8-dev
-            - python3-pip
-            - python3-setuptools
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
+    - python: 3.8
+      dist: xenial
+      sudo: true
 
-before_install:
-  - echo $LANG
-  - echo $LC_ALL
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install libboost1.65-all-dev ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx"   ]; then brew reinstall openssl                    ; fi
-  - git clone https://github.com/named-data/ndn-cxx.git && cd ndn-cxx
-  - git checkout ndn-cxx-0.7.0
-  - ./waf configure && ./waf && sudo ./waf install && cd ..
-  - git clone https://github.com/named-data/NFD.git && cd NFD
-  - git checkout NFD-0.7.0
-  - ./waf configure --without-libpcap --without-websocket && ./waf && sudo ./waf install && cd ..
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ldconfig ; fi
-  - ndnsec-key-gen test
-  - sudo nfd start -c /usr/local/etc/ndn/nfd.conf.sample &
 install:
-  - pip3 install pytest
-  - pip3 install wheel
-  - pip3 install .
+  # Install TA-Lib
+  - wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+  - tar -xzvf ta-lib-0.4.0-src.tar.gz
+  - cd ta-lib
+  - ./configure --prefix=/usr
+  - make
+  - sudo make install
+  - cd ..
+
+  # Install Test Deps
+  - pip install -U pip
+  - pip install "numpy>=1.15.4"
+  - pip install TA-Lib
+  - pip install coveralls
+  - pip install -U setuptools
+  - pip install ipython==5.3.0
+  - pip install --prefer-binary .
 script:
-  - pytest
+  - ls -al $HOME/.rqalpha/
+  - ls -al $HOME/.rqalpha/bundle/
+  - rqalpha download-bundle
+  - coverage run --source=rqalpha test.py
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.rqalpha/bundle
+after_success:
+  coveralls
