@@ -1,99 +1,30 @@
-os: linux
+notifications:
+  email:
+    false
 
-
-
-dist: bionic
-
-
+dist: xenial
+sudo: false
 
 language: python
 
-
-
 python:
-
+  - "3.6"
   - "3.7"
-
   - "3.8"
+  - "nightly"
 
-  - "3.9"
-
-  - "3.10"
-
-
-
-# TODO eventually I want a better build matrix here, i.a. for numpy versions
-
-
-
-cache:
-
-  pip: true
-
-  directories:
-
-    - "$HOME/.cache/pypoetry"
-
-
-
-install:
-
-  - pip install poetry
-
-  - poetry install
-
-
-
-git:
-
-  depth: 3
-
-
-
-branches:       # since the master branch is the only one where PRs are
-
-  only:         # merged in.
-
-    - master
-
-    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/    # for release tags
-
-
+before_script:
+  - sudo apt-get install -qq openjdk-8-jre
 
 script:
-
-  - poetry run pytest
-
-  - poetry run mypy alns
-
-
-
-before_deploy:
-
-  - poetry config http-basic.pypi $PYPI_USER $PYPI_PASS
-
-  - poetry build
-
+  - python setup.py test
 
 
 deploy:
-
-  provider: script
-
-  script: poetry publish
-
-  skip_cleanup: true
-
+  provider: pypi
+  user: moxfyre
+  password:
+    secure: eNSVgDo1B2hjz7XzPkKLWLfKG5HcRe+ffW5bxpIU2cddq+WFVc/nKGevqnQcbQuKROcShxMwG4Hb7Z13VzC42kTdSwg2IFTXH5tONIE2z/x6EI1WrysK3XoqupnD6vHFIiOWgjklA+RTL6cLkbJZXGYzP/Qf+Ic80iS9mYZxLKM7+fKjRez/bHBd6tXnXUCygniCpWPo/JLaO1FF9rvMNk2ZUOtqCMWGQBgqVQsntrnOj0hHq4Of8sGp3aykicbH9WeJwkr6337rI/ohYBqafsmP6rMhJrK9FfHfadsQVhS1vJNR2hneSbhVgFqFptTKAxDtVdB2flb78X9kEsy6COzAElgwWwPpGTo1VKsxmZ9udMFtVJEjjIfciGrhU1jVnPfSj9XDASh4A3MJydp+TkQ8iz3+AIXPThNCWvEoHmYIGrrziTmih+bw+k0OxX9xN1HcBN8ssj98fv4AGgev110GBA1kM8yt5aDSuo+9c7mZA+352rE2/YZvAqtAORjjDEoPoezm/dg6YTgiXhRUGFpbjiyNKsF/QggVZURn+KOuu4kIsrX6FL0QzJ7Y2kK3b1Cfv94ppggAG7NqsCPO7gTmHCvTXCM+Q83QT+HLXlPjEd9kzfUEyfqjM0ueIRWHDVZ1+St0gwcSaA/N6e2IlIfRPKKU7PQ7mQO9f8lfvb4=
   on:
-
-    # Deploy to PyPI on tagged commits, from the latest Python version
-
     tags: true
-
-    condition: "$TRAVIS_PYTHON_VERSION == 3.9"
-
-
-
-after_success:
-
-  - codecov
+    repo: dlenski/python-zxing
