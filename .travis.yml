@@ -1,89 +1,38 @@
 language: python
-group: travis_latest
-dist: xenial
 
-sudo: false
-matrix:
-  include:
-  - python: "2.7"
-    env: NUMPY_VERSION="1.8.2"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.9.3"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.10.4"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.11.3"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.12.1"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.13.3"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.14.5"
-  - python: "2.7"
-    env: NUMPY_VERSION="1.15.1"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.8.2"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.9.3"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.10.4"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.11.3"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.12.1"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.13.3"
-  - python: "3.4"
-    env: NUMPY_VERSION="1.14.5"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.8.2"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.9.3"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.10.4"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.11.3"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.12.1"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.13.3"
-  - python: "3.5"
-    env: NUMPY_VERSION="1.14.5"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.8.2"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.9.3"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.10.4"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.11.3"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.12.1"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.13.3"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.14.5"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.15.4"
-  - python: "3.6"
-    env: NUMPY_VERSION="1.16.1"
-  - python: "3.7"
-    env: NUMPY_VERSION="1.14.5"
-  - python: "3.7"
-    env: NUMPY_VERSION="1.15.4"
-  - python: "3.7"
-    env: NUMPY_VERSION="1.16.1"
-  - python: "3.7"
-    env: NUMPY_VERSION="1.17.2"
-  - python: "3.8"
-    env: NUMPY_VERSION="1.17.2"
-
-before_install:
-  - pip install "numpy==$NUMPY_VERSION"
-install:
-  - python setup.py install
-script:
-  - python setup.py test
-  - python -m doctest README.rst
 notifications:
   email: false
+
+matrix:
+  include:
+    - name: "Python 2.6"
+      python: 2.6
+      dist: trusty        # required for legacy Python
+    - name: "Python 2.7"
+      python: 2.7
+    - name: "Python 3.2"
+      python: 3.2
+      dist: trusty        # required for legacy Python
+    - name: "Python 3.3"
+      python: 3.3
+      dist: trusty        # required for legacy Python
+    - name: "Python 3.4"
+      python: 3.4
+    - name: "Python 3.5"
+      python: 3.5
+    - name: "Python 3.6"
+      python: 3.6
+    - name: "Python 3.7"
+      python: 3.7
+    - name: "Python 3.8"
+      python: 3.8
+    - name: "Python 3.9"
+      python: 3.9
+
+install:
+  - pip install -e .
+
+script:
+  - cd tests
+  - python test_cvss2.py
+  - python test_cvss3.py
