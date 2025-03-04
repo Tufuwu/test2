@@ -1,18 +1,17 @@
-language: python
-sudo: false
-python:
-  - "3.8"
+name: publish
+on:
+  push:
+    branches-ignore:
+      - *
+    tags:
+      - *
 
-install:
-  # Setup bikeshed. See https://tabatkins.github.io/bikeshed/#install-linux
-  - pip install bikeshed
-  - bikeshed update
-  - pip install Pygments
- 
-script:
-  - bash ./scripts/deploy.sh
-
-env:
-  global:
-  - ENCRYPTION_LABEL: "6c9ad971e3e1"
-  
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: publish to PyPi
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
