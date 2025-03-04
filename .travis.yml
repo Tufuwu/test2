@@ -1,30 +1,59 @@
-notifications:
-  email:
-    false
-
-dist: xenial
-sudo: false
-
 language: python
+sudo: false
+matrix:
+  include:
+    - os: linux
+      python: 3.5
+      env: TOXENV=py35
+    - os: linux
+      python: 3.6
+      env: TOXENV=py36
+    - os: linux
+      python: 3.7
+      # FIXME: Workaround for Python 3.7 support on TravisCI
+      dist: xenial
+      sudo: true
+      env: TOXENV=py37
+      after_success:
+        - tox -e coverage-report
+        - coveralls
+    # TODO: Re-add testing on MacOS
 
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "nightly"
+    # Meta
+    - os: linux
+      # TODO: Use 3.7 when TravisCI has proper support for it
+      python: 3.6
+      env: TOXENV=flake8
 
-before_script:
-  - sudo apt-get install -qq openjdk-8-jre
+    # Deployment when all tests succeed. Skip installation and script.
+    - stage: deploy
+      before_install: true
+      install: true
+      script: true
+      os: linux
+      # TODO: Use 3.7 when TravisCI has proper support for it
+      python: 3.6
+      env: DEPLOY=true
 
-script:
-  - python setup.py test
+before_install:
+  - pip install coveralls
 
+install: pip install tox
+
+script: tox -vv
+
+cache: pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
 
 deploy:
+  skip_cleanup: true
   provider: pypi
-  user: moxfyre
+  user: pymoca.wheelbuilder
   password:
-    secure: eNSVgDo1B2hjz7XzPkKLWLfKG5HcRe+ffW5bxpIU2cddq+WFVc/nKGevqnQcbQuKROcShxMwG4Hb7Z13VzC42kTdSwg2IFTXH5tONIE2z/x6EI1WrysK3XoqupnD6vHFIiOWgjklA+RTL6cLkbJZXGYzP/Qf+Ic80iS9mYZxLKM7+fKjRez/bHBd6tXnXUCygniCpWPo/JLaO1FF9rvMNk2ZUOtqCMWGQBgqVQsntrnOj0hHq4Of8sGp3aykicbH9WeJwkr6337rI/ohYBqafsmP6rMhJrK9FfHfadsQVhS1vJNR2hneSbhVgFqFptTKAxDtVdB2flb78X9kEsy6COzAElgwWwPpGTo1VKsxmZ9udMFtVJEjjIfciGrhU1jVnPfSj9XDASh4A3MJydp+TkQ8iz3+AIXPThNCWvEoHmYIGrrziTmih+bw+k0OxX9xN1HcBN8ssj98fv4AGgev110GBA1kM8yt5aDSuo+9c7mZA+352rE2/YZvAqtAORjjDEoPoezm/dg6YTgiXhRUGFpbjiyNKsF/QggVZURn+KOuu4kIsrX6FL0QzJ7Y2kK3b1Cfv94ppggAG7NqsCPO7gTmHCvTXCM+Q83QT+HLXlPjEd9kzfUEyfqjM0ueIRWHDVZ1+St0gwcSaA/N6e2IlIfRPKKU7PQ7mQO9f8lfvb4=
+    secure: "GZaxb109ZfDBjhFfpWnPxsfNeRMjq226MyNUB7K3ferXpR3+MBx2pOfzuYf+VF8ypOeZ9DsCwVn2x+33eJEOoXUAS4HaCz1EYEgHvEsAGf6nZI9MlGP9AWgKTqvQBj6m/VrizuaXU9gs4sAWm6udH+nqzstmrp6XVZknNfADRRA="
+  distributions: "sdist bdist_wheel"
   on:
     tags: true
-    repo: dlenski/python-zxing
+    condition: $DEPLOY = true
