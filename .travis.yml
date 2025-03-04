@@ -1,15 +1,20 @@
 language: python
-dist: xenial
-sudo: required
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
-
-before_install:
-  - sudo apt-get install -y libxml2-dev libglib2.0-dev libjson-glib-dev
-
-install: "python3 setup.py develop"
-
+  - "3.7"
+env:
+  - NUMPY="1.15.0"
+  - NUMPY="1.16.6"
+  - NUMPY="1.19.2"
+install:
+  - pip install cython>=0.28
+  - pip install numpy=="$NUMPY"
+  - pip install scipy matplotlib
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then
+       pip install raysect;
+    else
+       pip install git+https://github.com/raysect/source@development;
+    fi
+  - dev/build.sh
 # command to run tests
-script: python -m unittest
+script: dev/test.sh
