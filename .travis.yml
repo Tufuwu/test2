@@ -1,29 +1,14 @@
-dist: xenial
-
-language: python
-
 sudo: false
-
-git:
-  depth: 1
-  quiet: true
-
-cache: pip
-
+language: python
+dist: xenial
 python:
-  - "3.8"
-  - "3.9"
-  - "3.10-dev"
-
-install:
-  - 'pip install tox-travis pyyaml python-coveralls'
-
-script: tox
-
-notifications:
-    slack:
-      rooms:
-        - pivotalenergy:SvNSkVaLVlZeu82utL37wSvy#travis
-
-after_success:
-  - coveralls
+  - 3.6
+  - 3.7
+  - 3.8
+install: pip install -r dev-requirements.txt
+script:
+  - flake8 sendgrid_backend/
+  - isort -c ./
+  - black --check ./
+  - mypy sendgrid_backend/
+  - tox
