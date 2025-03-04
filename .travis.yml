@@ -1,27 +1,36 @@
-os:
-  - linux
-dist: bionic
+dist: trusty
+sudo: required
+services:
+- postgresql
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install -y yui-compressor node optipng
+before_script:
+- cp example.env .env
+- psql -c 'create database pygame_test;' -U postgres
+- psql pygame_test -c "CREATE USER pygame_test WITH PASSWORD 'password';" -U postgres
+- psql pygame_test -c "GRANT ALL PRIVILEGES ON DATABASE pygame_test to pygame_test;"
+  -U postgres
+addons:
+  postgresql: '9.6'
+test:
+  adapter: postgresql
+  database: pygame_test
 language: python
-install: make install
-script: make test
-notifications:
-  slack:
-    secure: qTTpPJZRjkFNlWUQd4M4odA+/QnuEqoD3ole8tQA+oFo2hzA7toQbAorgKd20mJ0VMLbrTxUDeCHwuLH6EYs0k9gnaDx7J8gaohW3ePHU6vncGfSh/9r8jCLHOdD/23ySm6D4TKR5SV7izNS+4WyqLqeLugdk5rFCwW4JJS118U=
-  email: false
-matrix:
-  include:
-    - os: linux
-      dist: bionic
-      python: 3.5
-    - os: linux
-      dist: bionic
-      python: 3.6
-    - os: linux
-      dist: bionic
-      python: 3.7
-    - os: linux
-      dist: bionic
-      python: 3.8
-    - os: linux
-      dist: bionic
-      python: pypy3
+cache: pip
+python:
+- '3.6'
+install:
+- pip install --upgrade pip
+- pip install -r requirements.dev.txt
+- pip install --upgrade pytest
+- pip install coveralls
+- pip install -e .
+script: APP_SECRET_KEY=a pytest
+after_success:
+- coveralls
+before_deploy:
+- pwd
+- ls -la
+- git checkout $TRAVIS_BRANCH
+- pygameweb_release_version_correct
