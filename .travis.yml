@@ -1,17 +1,15 @@
 language: python
+
 python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
   - "3.7"
-  - "3.8"
-  - "3.9"
-cache: pip
+
 install:
-  - python -m pip install --upgrade pip wheel
-  - pip install h5pyd --upgrade
-  - pip install coveralls
-  - pip install .
-import:
-  - .hscfg
+  - pip install -r test-requirements.txt
+
 script:
-  - nosetests -v --with-coverage --cover-package=mhkit mhkit    
-after_success:
-  - coveralls
+  - flake8 chinese_calendar
+  - pytest --cov=chinese_calendar
