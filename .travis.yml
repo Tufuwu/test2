@@ -1,27 +1,28 @@
-dist: xenial
-
 language: python
 
-python:
-  - 3.6
-  - 3.7
-  - 3.8
+sudo: false
 
-env:
-  - DJANGOVER=django21
-  - DJANGOVER=django22
-  - DJANGOVER=django30
-  - DJANGOVER=django31
+matrix:
+  include:
+    - python: 3.10-dev
+      env: TOXENV=py310
+    - python: 3.9
+      env: TOXENV=py39
+    - python: 3.8
+      env: TOXENV=py38
+    - python: 3.7
+      env: TOXENV=py37
+    - python: 3.6
+      env: TOXENV=py36
 
 install:
-  - pip install tox coverage
+  - pip install -U setuptools tox pip virtualenv
+  - pip install -e .
+  - pip install pytest-cov codecov -r tests/requirements.txt
 
 script:
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.5' && $DJANGOVER ]]; then export TOX_ENV=py35-$DJANGOVER; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.6' && $DJANGOVER ]]; then export TOX_ENV=py36-$DJANGOVER; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.7' && $DJANGOVER ]]; then export TOX_ENV=py37-$DJANGOVER; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.8' && $DJANGOVER ]]; then export TOX_ENV=py38-$DJANGOVER; fi"
-  - tox -r -e "$TOX_ENV"
+  - tox
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - py.test tests/ example/ --cov=./
+  - codecov
