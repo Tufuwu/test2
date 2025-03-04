@@ -1,25 +1,17 @@
-
 language: python
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-sudo: false
-branches:
-  except:
-    - gh-pages
-env:
-  - DJANGO=2.2
-  - DJANGO=3.0
-  - DJANGO=3.1
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+  - nightly
+
 matrix:
-  fast_finish: true
-before_install:
-  - sudo apt-get -qq update
+  allow_failures:
+    - python: 3.5, nightly
 install:
-  - python -m pip install -U pip
-  - pip install -U setuptools tox-travis codecov
+  - pip install six yapf
 script:
-  - tox
-after_success:
-  - codecov -e DJANGO
+  - python test/run_all.py
+  - yapf --diff --recursive .
