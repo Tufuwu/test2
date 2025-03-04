@@ -1,26 +1,30 @@
-sudo: required
-
-language: python
-
-python:
-  - 3.6
+os: linux
+dist: focal
 
 services:
   - docker
 
-before_install:
-  - sudo sysctl -w vm.max_map_count=262144
-  - sudo service docker restart
-  - docker pull centos:7
-  - docker images
+language: python
+python:
+  - '3.6'
 
 install:
   - pip install -r requirements.txt
 
-script:
-  - VERSION=$(curl -s https://crate.io/versions.json | grep crate_testing | tr -d '" ' | cut -d ":" -f2)
-  - ./update.py --cratedb-version ${VERSION} > Dockerfile
-  - PATH_TO_IMAGE=. zope-testrunner --path . -s tests --color
+jobs:
+  include:
+    - stage: test
+      script: ./tests/run_tests.sh
+    - stage: deploy
+      script:
+        - python setup.py install_egg_info sdist bdist_wheel
+      deploy:
+        provider: pypi
+        username: '__token__'
+        password: $PYPI_TOKEN
+        on:
+          branch: master
 
-notifications:
-  email: false
+stages:
+  - test
+  - deploy
