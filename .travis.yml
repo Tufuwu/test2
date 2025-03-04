@@ -1,17 +1,21 @@
 dist: xenial
 language: python
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-# - "pypy"
-# - "pypy3"
-# command to install dependencies
+python: 3.7
+
 install:
-  - pip install -r requirements.txt -r test-requirements.txt
-# command to run tests
+  - pip install flake8 flake8_polyfill kodi-addon-checker git+https://github.com/romanvm/kodi-addon-submitter.git
+
+before_script:
+- git config core.quotepath false
+
+# command to run our tests
 script:
-  - py.test --cov tdclient tdclient/test
-after_success:
-  - coveralls
+  - flake8 ./ --statistics --show-source --ignore=E501 --exclude=croniter.py # check python structure against flake8 tests, ignore long lines
+  - kodi-addon-checker --branch=matrix --allow-folder-id-mismatch
+
+#deploy when tag created
+deploy:
+  - provider: script
+    script: submit-addon -r repo-scripts -b matrix --push-branch service.libraryautoupdate
+    on:
+      tags: true
