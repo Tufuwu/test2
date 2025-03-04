@@ -1,82 +1,35 @@
 language: python
-script: make test_long
-dist: xenial
-os: linux
-jobs:
-  exclude:
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.1.* PYQT=PyQt5
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.1.* PYQT=PySide2
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.2.* PYQT=PyQt5
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.2.* PYQT=PySide2
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.3.* PYQT=PyQt5
-    - python: "3.5"
-      env: MATPLOTLIB_VERSION=3.3.* PYQT=PySide2
-    - python: "3.8"
-      env: MATPLOTLIB_VERSION=1.5.*
-    - python: "3.8"
-      env: MATPLOTLIB_VERSION=2.0.*
-    - python: "3.8"
-      env: MATPLOTLIB_VERSION=2.1.*
-    - python: "3.8"
-      env: MATPLOTLIB_VERSION=2.2.*
-    - python: "3.9"
-      env: MATPLOTLIB_VERSION=1.5.*
-    - python: "3.9"
-      env: MATPLOTLIB_VERSION=2.0.*
-    - python: "3.9"
-      env: MATPLOTLIB_VERSION=2.1.*
-    - python: "3.9"
-      env: MATPLOTLIB_VERSION=2.2.*
 python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-env:
-  - MATPLOTLIB_VERSION=1.5.*
-  - MATPLOTLIB_VERSION=2.0.*
-  - MATPLOTLIB_VERSION=2.1.*
-  - MATPLOTLIB_VERSION=2.2.*
-  - MATPLOTLIB_VERSION=3.0.* PYQT=PyQt5
-  - MATPLOTLIB_VERSION=3.0.* PYQT=PySide2
-  - MATPLOTLIB_VERSION=3.1.* PYQT=PyQt5
-  - MATPLOTLIB_VERSION=3.1.* PYQT=PySide2
-  - MATPLOTLIB_VERSION=3.2.* PYQT=PyQt5
-  - MATPLOTLIB_VERSION=3.2.* PYQT=PySide2
-  - MATPLOTLIB_VERSION=3.3.* PYQT=PyQt5
-  - MATPLOTLIB_VERSION=3.3.* PYQT=PySide2
-addons:
-  apt:
-    packages:
-    - libxcb-icccm4
-    - libxcb-image0
-    - libxcb-keysyms1
-    - libxcb-randr0
-    - libxcb-render-util0
-    - libxcb-render0
-    - libxcb-shape0
-    - libxcb-shm0
-    - libxcb-sync1
-    - libxcb-util1
-    - libxcb-xfixes0
-    - libxcb-xinerama0
-    - libxcb-xkb1
-    - libxkbcommon-x11-0
-services:
-  - xvfb
+- '3.6'
+- '3.7'
+- '3.8'
 install:
-  - pip install mock
-  - '[ -n "$PYQT" ] && pip install QtPy ${PYQT} || true'
-  - pip install matplotlib==${MATPLOTLIB_VERSION}
-notifications:
-  pushover:
-    api_key:
-      secure: NVBdwHfLX60WsmuZGn8r4R/zBqR8t2eo8RYLBowWKMeUQZSY/9Pg7Esl2LrhSp3dktQJrocc656PXYDBI37C+2kj17c+XGtKMFiUvQACBuOc0088+8Riu91XqjExwP8wH0aEDpmKCzUL6/lGMLse2zuonxClflFFjYL9GPzxom4=
-    users:
-      secure: Y4NyGJ+vlqp7N1BhyHwQR4JBsEgEvSLOvRD7xxl/BFjnmABZUvwDpnji2owGO0T+pSMua3gYL90k7FZDgCvHROFsumiA4Qq2O6FsxJPGxyoOHXryJzI6Md3FbR5EnC1LNWb9/RRaoaqLWFEEIJE0DxkZZIy3CsFTqaKpYzb4Uf4=
+- pip install tox tox-travis
+script:
+- tox
+sudo: required
+services:
+- docker
+env:
+  global:
+  - MINIO_STORAGE_ENDPOINT=localhost:9153
+  - MINIO_STORAGE_ACCESS_KEY=weak_access_key
+  - MINIO_STORAGE_SECRET_KEY=weak_secret_key
+before_install:
+- docker run -d -p 9153:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio server /export
+# after_success:
+# - pip install codecov
+# - codecov -e TOXENV,DJANGO
+# deploy:
+#   provider: pypi
+#   user: py-pa
+#   distributions: sdist bdist_wheel
+#   docs_dir: site
+#   password:
+#     secure: O29yLKNLInnlH1fQsp1mxZzUZSuu5kdjl1m65YO9RowELrmj2bmvUgTFJYhEEyyQhzcvzPnZqgL3X9/Nqz+oEqfF5Bu9SpF6U/RgLjbUaR+m1aQlW9HiZHCglRLifXPF3lL0JHQaHdbkaLz/O4Cap5M9upqYfdXX13drfgWfe2Cdd62FlcE8eCeRdYjJ4ux3F7TqD1da8gbFxMN+gjkWzXeyEq9kAffZRKz3OXefOH4s07czuaircaFTQNb39j8bQ1/uEJ+tdLtCkyRRnTqm2a/mTqO8830NO/IH0xaSG2rS5vOWnq+OiJsYvjdmtMRAuoKvJipolYH9RZXKJUK89wcweA0L4k06F3Hp2ZY8ZvJ3fDM5gBeEmfXG+hAYQHVKod7RFUr3sp7UGVIhPdNfDHw+gXMy+MPgu0gknOm6Om6JGtx0cqO2jB6SpYK76CRa0TzCauetVfbJmTNsVNUVx8++xlkMXh8iJ+ewZ54UosIpr1Xl2suCZsPDhMEBnhrj3GsX+3FeEfNa9U0ViPUz9sUu83H4GLBoTaZQDLfvVSyIS2Q+qu0ygOz0xCqfVbkbrVGq5EpexNb7qL8LhJULamSjXHQH6+Nd7rAuOvVTRFWROX3eG4hJU4kyvBlACTQUBo6TWeYJdW2V2EHOaHfjldM4DS7GRMiVvwf5eLj8wnk=
+#   on:
+#     tags: true
+#     python: "3.7"
+#     repo: py-pa/django-minio-storage
+# notifications:
+#   email: false
