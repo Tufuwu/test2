@@ -1,37 +1,30 @@
+---
+sudo: required
 language: python
-matrix:
-  include:
-    - python: 2.7
-      dist: bionic
-    - python: 3.4
-      dist: xenial
-    - python: 3.5
-      dist: bionic
-    - python: 3.6
-      dist: bionic
-    - python: 3.7
-      dist: bionic
-    - python: 3.8
-      dist: bionic
-sudo: true
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc
-    - gfortran
-    - libhdf5-dev
-install:
-- ( cd libcdf && make build && sudo make install )
-- ( cd qdipole && ./configure && make build && sudo make install )
-- pip install scipy
-- pip install ./eoxmagmod/
+dist: bionic
+
+python:
+  - "3.6"
+
+services:
+  - docker
+
+before_install:
+  - pip install -U pip tox
+  - pip install https://github.com/ome/zeroc-ice-py-manylinux/releases/download/0.2.0/zeroc_ice-3.6.5-cp36-cp36m-manylinux2010_x86_64.whl
+  # https://github.com/ome/openmicroscopy/blob/v5.5.1/Dockerfile#L32
+  - python -c "import Ice; print(Ice.stringVersion())"
+
 script:
-- pip list
-- mkdir -p ./test && cd ./test
-- pip show -f eoxmagmod
-- python -c 'import eoxmagmod' && python -m unittest discover -p '[a-z]*.py' -v eoxmagmod
-notifications:
-  slack:
-    secure: cbb7/6s0sglh2q7Lqnlq1I3tF8v2PS3KC+8ppjFFsKGzXWVImTSVU8md06Kkw1Hrf+mXm39x78NQx0o66EzMjZ2GS7SKD3eT3GDRqaF9COrc5zfeshZGF7swu/wtZMMMj0UrTxQnhJx09nwsTWGpCnCyEWOs0tHg+gUzoHqmM+E=
+  - python setup.py sdist
+  - pip install dist/omero-web*gz
+  - python -c "import omeroweb.version as owv; print(owv.omeroweb_version)"
+  - tox -e travis
+
+deploy:
+  provider: pypi
+  user: $PYPI_USER
+  password: $PYPI_PASSWORD
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
