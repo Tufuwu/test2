@@ -1,28 +1,26 @@
-name: Python Fire
+sudo: false
+language: python
 
-on: [push]
+matrix:
+  include:
+      - python: 3.6
+      - python: 3.7
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [2.7, 3.4, 3.5, 3.7, 3.8, 3.9]
+install:
+  - travis_retry pip install . pytest isort black mypy readme_renderer
+  - pip list
 
-    steps:
-     # Checkout the repo.
-     - name: Checkout Python Fire repository
-       uses: actions/checkout@v2
+script:
+  - echo "$TRAVIS_PYTHON_VERSION"
+  - ./tests/run_tests.py
 
-     # Set up Python environment.
-     - name: Set up Python ${{ matrix.python-version }}
-       uses: actions/setup-python@v2
-       with:
-         python-version: ${{ matrix.python-version }}
+  # Check wheather the imports were sorted correctly.
+  - isort -c -rc ptpython tests setup.py examples
 
-     # Build Python Fire using the build.sh script.
-     - name: Run build script
-       shell: bash
-       run: ./.github/scripts/build.sh
-       env:
-         PYTHON_VERSION: ${{ matrix.python-version }}
+  - black --check ptpython setup.py examples
+
+  # Type checking
+  - mypy ptpython
+
+  # Ensure that the README renders correctly (required for uploading to PyPI).
+  - python -m readme_renderer README.rst > /dev/null
