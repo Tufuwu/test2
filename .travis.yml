@@ -1,5 +1,18 @@
 language: python
 python:
-  - "3.6"
+  - '3.6'
+  - '3.7'
+  - '3.8'
+  - '3.9'
+
+install:
+  - pip install -r requirements/tasks.txt
+  - pip-sync requirements/development.txt
+  - pip install -e .
+
 script:
-  - pytest currency_symbols/test.py
+  - flake8 pyfatfs tests
+  - py.test --cov=pyfatfs tests
+
+after_success:
+  - coveralls
