@@ -1,9 +1,13 @@
 language: python
-python: 3.8
-dist: xenial
+python:
+    - '2.7'
+    - '3.5'
+    - '3.6'
+    - '3.7'
+    - '3.8'
 install:
-  - pip install -r requirements.txt -r requirements-ci.txt
+    - pip install -r requirements.txt
+    - pip install -r tests/requirements.txt
 script:
-  - bash ci.sh
-after_success:
-  - codecov
+    - flake8
+    - nose2
