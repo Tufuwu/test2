@@ -1,19 +1,26 @@
 language: python
+
+sudo: false
+
 python:
-  - "3.7"
-  - "3.8"
-services:
-  - mysql
-before_install:
-  - pip install -U pip
-  - pip install pycodestyle codecov
-  - python setup.py install
-before_script:
-  - mysql -e 'CREATE DATABASE my_db;'
-  #- mysql my_db < sample_table/schema.sql
+  - "2.7"
+  - "3.5"
+  - "pypy"
+
+addons:
+  apt:
+    packages:
+      - graphviz
+
+cache:
+  pip: true
+
+install:
+  - pip install -U pip wheel
+  - pip install -U setuptools
+  - pip install -r doc_requirements.txt
+  - pip install -U .
+
 script:
-  - pycodestyle --exclude=venv --ignore=E501 .
-  - coverage run --source=. -m pytest
-  - coverage report -m
-after_success:
-  - codecov
+  - haas simplesat
+  - cd docs && make html
