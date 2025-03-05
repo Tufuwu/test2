@@ -1,66 +1,30 @@
-name: Test Python code
+notifications:
+  email:
+    false
 
-on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+sudo: false
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: True
+language: python
 
-jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10"]
-        channel-priority: [strict]
-        include:
-          - python-version: "3.10"
-            os: macos-latest
-          - python-version: "3.10"
-            os: windows-latest
-          - python-version: "3.10"
-            os: ubuntu-latest
-            channel-priority: flexible
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
 
-      - name: Cache conda packages
-        uses: actions/cache@v3
-        with:
-          path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.github/environment.yml') }}
+install:
+  - "pip install ."
 
-      - name: Create conda environment
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          auto-activate-base: false
-          channel-priority: ${{ matrix.channel-priority }}
-          environment-file: .github/environment.yml
-          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+script:
+  - "python setup.py build"
+  - "python setup.py test"
 
-      - name: Install package in development mode
-        shell: bash -l {0}
-        run: python -m pip install --upgrade-strategy=only-if-needed -e .[display,testing]
-
-      - name: Log installed packages for debugging
-        shell: bash -l {0}
-        run: |
-          conda info -a
-          conda list
-
-      - name: Show libraries in the system on which NumPy was built
-        shell: bash -l {0}
-        run: python -c "import numpy; numpy.show_config()"
-
-      - name: Run unit tests
-        shell: bash -l {0}
-        run: pytest --cov=mir_eval
-        working-directory: tests
+deploy:
+  provider: pypi
+  user: moxfyre
+  password:
+    secure: sI1GekmIIbq8bEwEf0w51sW9hgQCG6n7DFes0eR+z3emxOP/yO4vGZ9suWZRF+47mns5fq+tK0L2ZNyGRgmJRv66/erTudA7+299Yuev+Tw8JoPeJju/bARPMJ9/1pAWf+bSMg7zg7Gw3gkF8okTYEvfdFxU1X1HO+xIkzTZ5Hcu4+Vn8bhTX0omBluLrvjriHVOZN1NGoxoC4NX7gyXrI7dS+GTRuJP/Lv6yVzlBB/LGcP91Ym6beedN9NpWNL6IZC15pWCEruI+BZpIs/R0w+OqW68kavY/OSiS+Ly+p50YAVyWpYhGundkFQE5yYL1zUrzcsZAs2Xqw6zGlkE0oaMnPO1y3X4LhQqjbWrM8qnK70MHnQmTgAaHa5jIqKDB0i2mQCtuv9rIG3VcJNqO2jN3EO9YXafMtQfoOq9o0EcWHg4gRcE/N6GS8r6vLRD4RC3TZG9N9ToIQveyGucBgLSDGJApv5AwJMJm1GTKAoK9bVTelI/HytzdJDUATBE0bn/DzJorS5ubJFH/XITZYjPpVmuQ+gbEo66GGCSBHNaefAsSTWfOhdjkFr58Uegm41uI3WqJskG/9hXwK7VeNYV+JF80cwd+KAq9ffadCdbG1K7ZbYRXVdA6oNs1JGhM0LKUDBOx8EiwdMIHmlFtjc1DuD3awcHGiO43ri1a+Y=
+  on:
+    tags: true
+    repo: dlenski/aztec_code_generator
