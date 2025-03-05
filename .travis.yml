@@ -1,91 +1,46 @@
-jobs:
-  include:
-    - os: linux
-      dist: xenial
-      language: python
-      python: 3.7
-      cache: pip
-      before_install:
-        - sudo apt-get install libdbus-1-dev libdbus-glib-1-dev --yes
-        - pip install --upgrade pip
-      before_script:
-        - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/spotify_lyric
-      script:
-        - cd tests/
-        - python -m unittest discover . "*_test.py"
-        - cd ..
-      before_deploy:
-        - pip install pyinstaller
-        - pyinstaller SpotifyLyrics.pyw -F -w -i icon.ico --add-data "icon.png:." --additional-hooks-dir=pyinstaller_hooks
-      deploy:
-        provider: releases
-        prerelease: true
-        skip_cleanup: true
-        token: ${GH_TOKEN}
-        file:
-          - dist/SpotifyLyrics
-        on:
-          repo: SimonIT/spotifylyrics
-          tags: true
-          all_branches: true
-    - os: osx
-      language: generic
-      cache:
-        directories:
-          - $HOME/.cache/pip
-      install:
-        - python3 --version
-        - pip3 install -r requirements.txt
-      before_script:
-        - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/spotify_lyric
-      script:
-        - cd tests/
-        - python3 -m unittest discover . "*_test.py"
-        - cd ..
-      before_deploy:
-        - pip3 install pyinstaller
-        - pyinstaller SpotifyLyrics.pyw -F -w -i icon.icns --add-data "icon.png:." --additional-hooks-dir=pyinstaller_hooks
-        - cd dist/
-        - zip -r SpotifyLyrics.app.zip SpotifyLyrics.app
-        - cd ..
-      deploy:
-        provider: releases
-        prerelease: true
-        skip_cleanup: true
-        token: ${GH_TOKEN}
-        file:
-          - dist/SpotifyLyrics.app.zip
-        on:
-          repo: SimonIT/spotifylyrics
-          tags: true
-          all_branches: true
-    - os: windows
-      language: cpp
-      cache:
-        directories:
-          - $LOCALAPPDATA/pip/cache
-      before_install:
-        - choco install python --version=3.7.8
-        - export PATH="/C/Python37:/C/Python37/Scripts:$PATH"
-      install:
-        - python -m pip install -r requirements.txt
-      before_script:
-        - export PYTHONPATH="$PYTHONPATH;C:\Users\travis\build\SimonIT\spotifylyrics;C:\Users\travis\build\SimonIT\spotifylyrics\spotify_lyric"
-      script:
-        - cd tests/
-        - python -m unittest discover . "*_test.py"
-        - cd ..
-      before_deploy:
-        - python -m pip install pyinstaller
-        - pyinstaller SpotifyLyrics.pyw -F -w -i icon.ico --add-data "icon.png;." --additional-hooks-dir=pyinstaller_hooks
-      deploy:
-        provider: releases
-        prerelease: true
-        skip_cleanup: true
-        token: ${GH_TOKEN}
-        file:
-          - dist/SpotifyLyrics.exe
-        on:
-          repo: SimonIT/spotifylyrics
-          tags: true
-          all_branches: true
+#    Copyright 2018 ARM Limited
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+language: python
+
+python:
+    - "3.6"
+
+install:
+    - pip install nose
+    - pip install nose2
+    - pip install flake8
+    - pip install pylint==2.6.0
+    - git clone -v https://github.com/ARM-software/devlib.git /tmp/devlib && cd /tmp/devlib && python setup.py install
+    - cd $TRAVIS_BUILD_DIR && python setup.py install
+
+env:
+    global:
+        - PYLINT="cd $TRAVIS_BUILD_DIR && ./dev_scripts/pylint wa"
+        - PEP8="cd $TRAVIS_BUILD_DIR && ./dev_scripts/pep8 wa"
+        - NOSETESTS="nose2 -s $TRAVIS_BUILD_DIR/tests"
+        - WORKLOAD="cd /tmp && wa run $TRAVIS_BUILD_DIR/tests/travis/idle_agenda.yaml -v -d idle_workload"
+        - PROCESS_CMD="$WORKLOAD && wa process -f -p csv idle_workload"
+        - SHOW_CMD="wa show dhrystone && wa show generic_android && wa show trace-cmd && wa show csv"
+        - LIST_CMD="wa list all"
+        - CREATE_CMD="wa create agenda dhrystone generic_android csv trace_cmd && wa create package test && wa create workload test"
+    matrix:
+        - TEST=$PYLINT
+        - TEST=$PEP8
+        - TEST=$NOSETESTS
+        - TEST=$WORKLOAD
+        - TEST="$PROCESS_CMD && $SHOW_CMD && $LIST_CMD && $CREATE_CMD"
+script:
+    - echo $TEST && eval $TEST
