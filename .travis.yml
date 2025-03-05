@@ -1,23 +1,33 @@
-dist: xenial
-language: python
-cache: pip
+name: Publish package to PyPi
 
-# Supported CPython versions:
-# https://en.wikipedia.org/wiki/CPython#Version_history
-python:
- - "3.6"
- - "3.7"
- - "3.8"
- - "3.9"
+on:
+  release:
+    types: [published]
 
-install:
- - pip install -U pip
- - pip install -U black flake8
+jobs:
 
-script:
- # Static analysis
- - flake8 --statistics --count
- - black --check --diff .
+  push:
+    runs-on: ubuntu-20.04
 
-matrix:
-  fast_finish: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.5
+
+      - name: Install pip
+        run: pip install -r requirements/pip.txt
+
+      - name: Install Dependencies
+        run: pip install setuptools wheel
+
+      - name: Build package
+        run: python setup.py sdist bdist_wheel
+
+      - name: Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: edx
+          password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
