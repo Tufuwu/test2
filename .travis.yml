@@ -1,29 +1,21 @@
 language: python
-group: travis_latest
-dist: xenial
-
-git:
-  depth: 3
-  quiet: true
-
+sudo: required
+os:
+  - linux
+cache:
+  pip: true
 python:
-  - 3.9
-  - 3.8
-
+  # - "3.4"
+  - "3.5"
+  - "3.6"
+  # - "nightly"
+before_install:
+  - sudo apt-get install libspatialindex-dev
 install:
-  - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
-  - pip3 install tox-travis
-
-script: tox -e travis
-
-# Macos Testing
-matrix:
-  include:
-    - name: "MacOS"
-      os: osx
-      osx_image: xcode10.3  # default xcode9.4 is too old for some dependencies
-      language: sh
-      script: tox -e nolinux
-
-env:
-  OMP_NUM_THREADS: 4
+  - pip install flake8
+  - pip install .
+script:
+  - flake8 . --ignore=E501 --select=B,C,E,F,W,T4,B9 --exclude=docs,build
+  - pytest 
+# after_success:
+#  - coveralls
