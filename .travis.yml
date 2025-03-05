@@ -1,27 +1,60 @@
+branches:
+  only:
+  - v1
+
+stages:
+  - linter
+  - test
+
+dist: xenial
+
 language: python
 
 python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
-  - '3.8'
+  - 3.6
+  - 3.7
 
-os: linux
+services:
+  - postgresql
 
 env:
-  PYTHONPATH: :test
-  PYTHONIOENCODING: utf-8
+  - DJANGO_SETTINGS_MODULE=exodus.settings.dev
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y dexdump
 
 install:
   - pip install -r requirements.txt
 
 script:
-  - make check-pylint
-  - make check-tox
-  - make check-translations
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
-  - make test
+  - cd exodus
+  - python manage.py test
 
-after_success:
-  - codecov
+jobs:
+  include:
+    - name: "flake8 lint"
+      stage: linter
+      services: []
+      before_install: []
+      python: 3.7
+      install:
+        - pip install flake8
+      script:
+        - flake8 exodus/
+
+    - name: "Dockerfile lint"
+      stage: linter
+      services: docker
+      before_install: []
+      install: []
+      script:
+        - docker run -i hadolint/hadolint:v1.19.0-45-gef91156-alpine < docker/Dockerfile
+
+    - name: "Docker build test"
+      stage: Test
+      services: docker
+      before_install: []
+      install: []
+      script:
+        - docker build -t exodus . --file ./docker/Dockerfile
