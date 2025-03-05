@@ -1,52 +1,50 @@
 language: python
+cache: pip
+dist: bionic
 
 python:
-    - 3.5
-    - 3.6
-    - 3.7
-    - 3.8
+  - "3.6"
+  - "3.7"
 
-services:
-    - docker
-
-cache:
-    directories:
-     - /home/travis/.sbt/
+notifications:
+  # will post a summary as comment on github in case of failure
+  webhooks: https://www.travisbuddy.com/
+  on_success: never
 
 env:
-  global:
-    - ASYNC_TEST_TIMEOUT=30
+  - DJANGO="django~=2.2"
+  - DJANGO="django~=3.0"
+  - DJANGO="django~=3.1"
+
+addons:
+  apt:
+    packages:
+      - sqlite3
+      - gdal-bin
+
+services:
+  - docker
+  - redis-server
+
+branches:
+  only:
+    - master
+    - dev
 
 before_install:
-    - mkdir -p $HOME/.sbt/launchers/1.3.12
-    - curl -L -o $HOME/.sbt/launchers/1.3.12/sbt-launch.jar https://repo1.maven.org/maven2/org/scala-sbt/sbt-launch/1.3.12/sbt-launch.jar
+  - pip install -U pip wheel
+  - pip install $DJANGO
+  - pip install -U -r requirements-test.txt
+  - npm install -g jshint stylelint
 
 install:
-    - pip install --upgrade setuptools pip websocket-client flake8
-    - travis_retry make clean dist enterprise-gateway-demo
-    - pip install dist/*.whl coverage
-    - pip freeze
+  - python setup.py -q develop
 
 script:
-    - jupyter enterprisegateway --help
-    - flake8 enterprise_gateway
-    - travis_retry travis_wait 3 nosetests -x --process-restartworker --with-coverage --cover-package=enterprise_gateway enterprise_gateway.tests
-    - echo "Starting integration tests ..."
-    - make itest-yarn
-    - pip uninstall -y jupyter_enterprise_gateway
+  # check is done here to allow travisbuddy to include a detailed failure summary
+  - ./run-qa-checks
+  - SAMPLE_APP=1 coverage run --source=openwisp_notifications runtests.py
+  - coverage run -a --source=openwisp_notifications runtests.py
 
 after_success:
-  - echo "Travis exited with ${TRAVIS_TEST_RESULT}"
-  - python --version
-  - pip --version
-  - pip list
-  - docker logs itest-yarn
-  - pip install codecov
-  - codecov
-
-after_failure:
-  - echo "Travis exited with ${TRAVIS_TEST_RESULT}"
-  - python --version
-  - pip --version
-  - pip list
-  - docker logs itest-yarn
+  - coveralls
