@@ -1,24 +1,33 @@
-language: python
-python:
-  - "3.8"
-os: linux
-dist: bionic
-# command to install dependencies
-install:
-  - pip install -r requirements.txt
-  - pip install -e .
-  # phylib will be a proper pip dependency once it's more stable
-  - pip install git+https://github.com/cortex-lab/phylib
+name: Publish package to PyPi
 
-before_script:
-  - echo "exec('from oneibl.one import ONE; ONE(silent=True)')" | python
-  - sed -i 's|null|"'$IBLFLATIRONPASS'"|g' /home/travis/.one_params
-  # command to run tests
-script:
-  - bash ./run_tests
-  - flake8 .
-# only build master and develop (PRs are built for all branches)
-branches:
-  only:
-  - master
-  - develop
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  push:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.5
+
+      - name: Install pip
+        run: pip install -r requirements/pip.txt
+
+      - name: Install Dependencies
+        run: pip install setuptools wheel
+
+      - name: Build package
+        run: python setup.py sdist bdist_wheel
+
+      - name: Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: edx
+          password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
