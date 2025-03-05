@@ -1,9 +1,13 @@
-dist: xenial
+language: go
+go:
+  - 1.x
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install shellcheck
-  - sudo apt-get -qq install libperl-critic-perl
-  - sudo apt-get -qq install python-flake8
-  - sudo apt-get -qq install flake8
+  - go get github.com/golang/lint/golint github.com/stretchr/testify/assert
+before_script:
+  - go get -d ./...
 script:
-  - make test
+  - ./scripts/licensecheck.sh
+  - go build ./...
+  - ./scripts/golint.sh
+  - go vet ./...
+  - go test -v ./...
