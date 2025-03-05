@@ -1,33 +1,20 @@
-dist: xenial
-language: python
-sudo: false
+sudo: required
 
-   apt:
-     update: true
+language: c
 
+services:
+    - docker
 
-matrix:
-  include:
-    - name: "conda 3.6 extras,opencl"
-        - conda install -c conda-forge pyopencl oclgrind clang=9.0.1
-        - pip install -r requirements/requirements-extras.txt
-        - pip install mpi4py
-      script: mpiexec -n 1 python -m mpi4py.futures -m pytest --cov=elephant
-      after_success: coveralls || echo "coveralls failed"
-
-    - name: "conda 3.7"
-        - pip install -r requirements/requirements-tutorials.txt
-        - pip install -r requirements/requirements-extras.txt
-        - pip install mpi4py
-        - sed -i -E "s/nbsphinx_execute *=.*/nbsphinx_execute = 'always'/g" doc/conf.py
-      script: cd doc && make html
-
-  - pip install -r requirements/requirements-tests.txt
-  - pip install pytest-cov coveralls
-  - python setup.py install
-  - python -c "from elephant.spade import HAVE_FIM; assert HAVE_FIM"
-  - pip list
-  - python --version
+before_install:
+    - cd ../
+    - git clone https://github.com/containers/container-selinux.git
+    - cp container-selinux/container.* selinux-policy/policy/modules/contrib;
+    - docker pull fedora:rawhide
 
 script:
-  pytest --cov=elephant
+    - docker run  -v $PWD:/root/build/ fedora:rawhide /bin/sh -c "dnf install --nogpgcheck -y checkpolicy policycoreutils-devel make m4 findutils ; cd /root/build/selinux-policy; make policy -j \$(nproc)"
+
+notifications:
+    emails:
+        - lvrabec@redhat.com
+        - zdenek@pytela.net
