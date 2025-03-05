@@ -1,17 +1,13 @@
-name: publish
-on:
-  push:
-    branches-ignore:
-      - *
-    tags:
-      - *
+language: python
+python:
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9
+  - pypy3
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-    - name: publish to PyPi
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+install: pip install tox-travis
+script:
+  tox
+after_success:
+  - coveralls
