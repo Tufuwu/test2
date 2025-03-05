@@ -1,16 +1,13 @@
+dist: xenial
 language: python
 python:
-    - 3.6
-    - 3.7
-    - 3.8
-    - 3.9
-before_install:
-    - python --version
-    - pip install -U pip
-    - pip install -U pytest
-    - pip install codecov
+  - "3.6"
+  - "3.7"
 install:
-    - pip install .
-script: pytest
-after_success:
-    - codecov
+  - pip install coverage codecov
+script:
+  - python setup.py develop
+  - coverage run -m unittest discover
+  - codecov
+matrix:
+  fast_finish: true
