@@ -1,30 +1,32 @@
-# CI job config file used by travis-ci see https://travis-ci.org/ for detail.
-# Jobs are build inside docker container that all dependencies are pre-installed.
-# here we use `horizonrobotics/alf:latest` which built by docker file `.ci-cd/Dockerfile.cpu`
-# and has been pushed to the public docker hub `https://hub.docker.com/`
-# see https://www.docker.com/ for detail about docker and how to build docker image.
+os: linux
+dist: bionic
 
-language: python
-sudo: required
-dist: trusty
-git:
-  quiet: true
-services:
-  - docker
-os:
-  - linux
-env:
-  - JOB=check_style
-  - JOB=test
-script:
-  - travis_wait 30 sleep infinity & docker run
-    -v $PWD:/ALF
-    -w /ALF/
-    -e PYTHONPATH=/ALF
-    -it horizonrobotics/alf:0.1.0
-    /ALF/.ci-cd/build.sh ${JOB}
+jobs:
+  fast_finish: true
+  include:
+    - python: "3.7"
+      language: python
+      env: TOXENV=lint
 
-notifications:
-  email:
-    on_success: change
-    on_failure: always
+    - python: "3.7"
+      language: python
+      env: TOXENV=py37
+
+    - python: "3.8"
+      language: python
+      env: TOXENV=py38
+
+    - language: minimal
+      env: TOXENV=py38
+      before_install:
+        # deadsnakes is not allowed on bionic at the moment via the `apt` addon
+        - sudo add-apt-repository -y ppa:deadsnakes/ppa
+        - sudo apt-get -q update
+        - sudo apt-get -y install python3.8 python3.8-dev python3.8-venv
+        - virtualenv -p python3.8 ~/virtualenv
+        - source ~/virtualenv/bin/activate
+        - python --version
+
+install: pip install -U setuptools tox coveralls
+script: tox
+after_success: coveralls
