@@ -1,18 +1,13 @@
 language: python
-
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
-  - "3.7-dev"
-  - "nightly"
-  - "pypy3.5"
-
+  - "3.7"
+  - "3.8"
+  - "3.9"
 install:
- travis_retry pip install coverage coveralls
-
+  - "pip install poetry"
+  - "poetry install -v"
 script:
-  - python -m coverage run --source=cologne_phonetics test_cologne_phonetics.py
-
-after_success:
-- coveralls
+  - "poetry run flake8 example/"
+  - "poetry run flake8 tests/"
+  - "poetry run pytest"
