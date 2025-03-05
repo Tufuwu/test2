@@ -1,30 +1,16 @@
----
 sudo: required
-language: python
-dist: bionic
-
-python:
-  - "3.6"
 
 services:
   - docker
 
-before_install:
-  - pip install -U pip tox
-  - pip install https://github.com/ome/zeroc-ice-py-manylinux/releases/download/0.2.0/zeroc_ice-3.6.5-cp36-cp36m-manylinux2010_x86_64.whl
-  # https://github.com/ome/openmicroscopy/blob/v5.5.1/Dockerfile#L32
-  - python -c "import Ice; print(Ice.stringVersion())"
+env:
+  matrix:
+    - CI_ROS_DISTRO="kinetic" PYTHON="python"
+    - CI_ROS_DISTRO="melodic" PYTHON="python"
+    - CI_ROS_DISTRO="noetic"  PYTHON="python3"
+
+install:
+  - docker build -t rospy_message_converter_$CI_ROS_DISTRO -f Dockerfile-$CI_ROS_DISTRO .
 
 script:
-  - python setup.py sdist
-  - pip install dist/omero-web*gz
-  - python -c "import omeroweb.version as owv; print(owv.omeroweb_version)"
-  - tox -e travis
-
-deploy:
-  provider: pypi
-  user: $PYPI_USER
-  password: $PYPI_PASSWORD
-  distributions: sdist bdist_wheel
-  on:
-    tags: true
+  - docker run rospy_message_converter_$CI_ROS_DISTRO /bin/bash -c "source devel/setup.bash && CTEST_OUTPUT_ON_FAILURE=1 catkin_make test && roscd rospy_message_converter && $PYTHON src/rospy_message_converter/json_message_converter.py && $PYTHON src/rospy_message_converter/message_converter.py"
