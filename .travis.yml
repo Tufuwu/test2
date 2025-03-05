@@ -1,46 +1,33 @@
-#    Copyright 2018 ARM Limited
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
+dist: xenial
 language: python
+sudo: false
 
-python:
-    - "3.6"
+   apt:
+     update: true
 
-install:
-    - pip install nose
-    - pip install nose2
-    - pip install flake8
-    - pip install pylint==2.6.0
-    - git clone -v https://github.com/ARM-software/devlib.git /tmp/devlib && cd /tmp/devlib && python setup.py install
-    - cd $TRAVIS_BUILD_DIR && python setup.py install
 
-env:
-    global:
-        - PYLINT="cd $TRAVIS_BUILD_DIR && ./dev_scripts/pylint wa"
-        - PEP8="cd $TRAVIS_BUILD_DIR && ./dev_scripts/pep8 wa"
-        - NOSETESTS="nose2 -s $TRAVIS_BUILD_DIR/tests"
-        - WORKLOAD="cd /tmp && wa run $TRAVIS_BUILD_DIR/tests/travis/idle_agenda.yaml -v -d idle_workload"
-        - PROCESS_CMD="$WORKLOAD && wa process -f -p csv idle_workload"
-        - SHOW_CMD="wa show dhrystone && wa show generic_android && wa show trace-cmd && wa show csv"
-        - LIST_CMD="wa list all"
-        - CREATE_CMD="wa create agenda dhrystone generic_android csv trace_cmd && wa create package test && wa create workload test"
-    matrix:
-        - TEST=$PYLINT
-        - TEST=$PEP8
-        - TEST=$NOSETESTS
-        - TEST=$WORKLOAD
-        - TEST="$PROCESS_CMD && $SHOW_CMD && $LIST_CMD && $CREATE_CMD"
+matrix:
+  include:
+    - name: "conda 3.6 extras,opencl"
+        - conda install -c conda-forge pyopencl oclgrind clang=9.0.1
+        - pip install -r requirements/requirements-extras.txt
+        - pip install mpi4py
+      script: mpiexec -n 1 python -m mpi4py.futures -m pytest --cov=elephant
+      after_success: coveralls || echo "coveralls failed"
+
+    - name: "conda 3.7"
+        - pip install -r requirements/requirements-tutorials.txt
+        - pip install -r requirements/requirements-extras.txt
+        - pip install mpi4py
+        - sed -i -E "s/nbsphinx_execute *=.*/nbsphinx_execute = 'always'/g" doc/conf.py
+      script: cd doc && make html
+
+  - pip install -r requirements/requirements-tests.txt
+  - pip install pytest-cov coveralls
+  - python setup.py install
+  - python -c "from elephant.spade import HAVE_FIM; assert HAVE_FIM"
+  - pip list
+  - python --version
+
 script:
-    - echo $TEST && eval $TEST
+  pytest --cov=elephant
