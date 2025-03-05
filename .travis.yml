@@ -1,21 +1,19 @@
 language: python
-sudo: required
-os:
-  - linux
-cache:
-  pip: true
+
+dist: xenial
+
 python:
-  # - "3.4"
-  - "3.5"
-  - "3.6"
-  # - "nightly"
+    - "3.5"
+    - "3.6"
+    - "3.7"
+
 before_install:
-  - sudo apt-get install libspatialindex-dev
+    - pip install --upgrade pip
+    - pip install poetry
+
 install:
-  - pip install flake8
-  - pip install .
+    - poetry install
+
 script:
-  - flake8 . --ignore=E501 --select=B,C,E,F,W,T4,B9 --exclude=docs,build
-  - pytest 
-# after_success:
-#  - coveralls
+    - poetry run flake8 beancount_ing_diba/ tests/
+    - poetry run py.test tests/
