@@ -1,92 +1,73 @@
+dist: bionic
+sudo: false
 language: python
 
-env:
-    global:
-        - PYTHONPATH=$PWD:$PYTHONPATH
-        - CXX="g++-8"
-        - CC="gcc-8"
-
 addons:
-    apt:
-        sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
-        packages:
-            - gcc-8
-            - g++-8
-            - ninja-build
-            - graphviz  # for sphinx docs
+  postgresql: "10"
+  apt_packages:
+    - enchant
 
-cache:
-    directories:
-        - $HOME/.cache/pip
-        - $HOME/.data
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.6
+      env: TOXENV=py36-django22
+    - python: 3.7
+      env: TOXENV=py37-django22
+    - python: 3.8
+      env: TOXENV=py38-django22
+    - python: 3.6
+      env: TOXENV=py36-django30
+    - python: 3.7
+      env: TOXENV=py37-django30
+    - python: 3.8
+      env: TOXENV=py38-django30
+    - python: 3.6
+      env: TOXENV=py36-django31
+    - python: 3.7
+      env: TOXENV=py37-django31
+    - python: 3.8
+      env: TOXENV=py38-django31
 
-install:
-    - pip install -U pip
-    # Keep track of pyro-api master branch
-    - pip install https://github.com/pyro-ppl/pyro-api/archive/master.zip
-    # Download PyTorch
-    - pip install numpy
-    - pip install torch==1.8.0+cpu torchvision==0.9.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-    - pip install .[test]
-    - pip install coveralls
-    - pip freeze
+    - python: 3.7
+      env: TOXENV=lint
+    - python: 3.7
+      env: TOXENV=sandbox
+    - python: 3.7
+      env: TOXENV=docs
 
 branches:
-    only:
-        - master
-        - dev
+  only:
+  - master
+  - /^releases.*$/
 
-jobs:
-    include:
-        - stage: lint
-          name: lint
-          python: 3.6
-          before_install: pip install flake8 isort>=5.0 mypy nbstripout nbformat
-          install:
-          script:
-              - make lint
-              #- make scrub;
-              #  git diff-index --quiet HEAD
-        - stage: auxiliary modules
-          name: docs
-          python: 3.6
-          script:
-              - pip install -r docs/requirements.txt
-              - make docs
-              - make doctest
-        - name: perf
-          python: 3.6
-          script:
-              - pip install -e .[profile]
-              - pytest -vs --benchmark-disable tests/perf/test_benchmark.py
-        - name: profiler
-          python: 3.6
-          script:
-              - pip install -e .[profile]
-              - python -m profiler.distributions
-        - stage: unit test
-          name: unit
-          python: 3.6
-          script: pytest -vs --cov=pyro --cov-config .coveragerc --stage unit --durations 20
-        - name: examples
-          python: 3.6
-          script:
-              - CI=1 pytest -vs --cov=pyro --cov-config .coveragerc --stage test_examples --durations 10
-              - grep -l smoke_test tutorial/source/*.ipynb | xargs grep -L 'smoke_test = False' \
-                  | CI=1 xargs pytest -vx --nbval-lax --current-env -W ignore::FutureWarning
-        - name: integration batch_1
-          python: 3.6
-          script: pytest -vs --cov=pyro --cov-config .coveragerc --stage integration_batch_1 --durations 10
-        - name: integration batch_2
-          python: 3.6
-          script: pytest -vs --cov=pyro --cov-config .coveragerc --stage integration_batch_2 --durations 10
-        - name: funsor
-          python: 3.6
-          script:
-              - pip install -e .[funsor]
-              - pytest -vs --cov=pyro --cov-config .coveragerc --stage funsor --durations 10
-              - CI=1 pytest -vs --cov=pyro --cov-config .coveragerc --stage test_examples --durations 10 -k funsor
+env:
+  global:
+    # These two environment variables could be set by Travis itself, or Travis
+    # could configure itself in /etc/, ~/, or inside of the virtual
+    # environments. In any case if these two values get configured then end
+    # users only need to enable the pip cache and manually run pip wheel before
+    # running pip install.
+    - PIP_WHEEL_DIR=$HOME/.cache/pip/wheels
+    - PIP_FIND_LINKS=file://$HOME/.cache/pip/wheels
+
+
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
+
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+
+install:
+  - pip install tox codecov
+
+
+script:
+  - tox
+
 
 after_success:
-          - coveralls
+  - codecov
