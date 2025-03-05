@@ -1,24 +1,13 @@
 language: python
 python:
-    - "3.5"
-    - "3.6"
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
+  - "2.7"
+  - "3.6"
 install:
-    - pip install tox tox-travis codecov
+  - pip install -Ur requirements.txt
+  - pip install -Ur dev_requirements.txt
 script:
-    - tox
+  - python -m pylint ./pusher_push_notifications/*.py
+  - python -m nose -s --with-coverage
+  - python setup.py checkdocs
 after_success:
-    - codecov
-deploy:
-  provider: pypi
-  user: "lukas-bednar"
-  password:
-    secure: "ks4q6t0YBc4i3hr5uYCepUi05SuBfkA6l2vakuqcQunuwClaCN3ryP5aKCKk3673wdKBh2eeL+VrKrmEnyRTrgo+t02ODSibAMeytwq254m526FiUbATemNrDyPtv7XTO/Yp9yFPwHbpoH8bdTa4MhTUm6qXcRtRdYvfU8zVKUU="
-  on:
-    branch: master
-    tags: true
-  skip_upload_docs: true
+  - codecov
