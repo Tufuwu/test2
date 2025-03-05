@@ -1,96 +1,42 @@
-# Based on https://github.com/cclauss/Travis-CI-Python-on-three-OSes
-jobs:
-  include:
-    - name: Linting
-      language: python
-      python: 3.6
-      dist: bionic
-      install:
-        - python -m pip install coveralls==1.9.2 tox==3.14.3
-      script: tox -e lint
-    - name: Documentation
-      language: python
-      python: 3.6
-      dist: bionic
-      install:
-        - python -m pip install coveralls==1.9.2 tox==3.14.3
-      script: tox -e doctest
-    - name: EVM Tests - Python 3.7 (Linux)
-      language: python
-      python: 3.7
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.7-dev npm solc
-      script: tox -e evmtest
-    - name: Package Tests - Python 3.7 (Linux)
-      language: python
-      python: 3.7
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.6-dev npm solc
-      script: tox -e pmtest
-    - name: Plugin Tests - Python 3.7 (Linux)
-      language: python
-      python: 3.7
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.8-dev npm solc
-      script: tox -e plugintest
-    - name: Standard Tests - Python 3.8 (Windows)
-      os: windows
-      language: node_js
-      node_js: '10'
-      before_install:
-        - choco install python --version=3.8.0
-      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
-      script: tox -e py38
-    - name: Standard Tests - Python 3.6 (Linux)
-      language: python
-      python: 3.6
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.6-dev npm solc
-      script: tox -e py36
-    - name: "Standard Tests - Python 3.7 (Linux)"
-      language: python
-      python: 3.7
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.6-dev npm solc
-      script: tox -e py37
-    - name: Standard Tests - Python 3.8 (Linux)
-      language: python
-      python: 3.8
-      dist: bionic
-      before_install:
-        - sudo add-apt-repository -y ppa:ethereum/ethereum
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get update
-        - sudo apt-get install -y python3.8-dev npm solc
-      script: tox -e py38
+language: python
+cache: pip
+dist: focal
+
+python:
+  - "3.6"
+  - "3.7"
 
 env:
-  global: COVERALLS_PARALLEL=true
+  - DJANGO="django~=2.2"
+  - DJANGO="django~=3.0"
+  - DJANGO="django~=3.1"
+
+services:
+  - redis-server
+
+branches:
+  only:
+    - master
+
+before_install:
+  - pip install -U -r requirements-test.txt
+  - npm install -g jshint
+
 install:
-  - python -m pip install --upgrade pip setuptools
-  - npm -g install ganache-cli@6.8.2
-  - python -m pip install coveralls==1.9.2 tox==3.14.3
-after_script: python -m coveralls
+  - pip install $DJANGO
+  - pip install -e .[rest]
+
+script:
+  - ./run-qa-checks
+  - coverage run --source=openwisp_users runtests.py
+  - SAMPLE_APP=1 coverage run --append --source=openwisp_users runtests.py
+  # basic tests without allauth.socialaccount
+  - NO_SOCIAL_APP=1 ./tests/manage.py test testapp.tests.test_admin.TestUsersAdmin --parallel
+
+after_success:
+  coveralls
+
 notifications:
-  email: false
-  webhooks: https://coveralls.io/webhook
+  # will post a summary as a comment on github in case of failure
+  webhooks: https://www.travisbuddy.com/
+  on_success: never
