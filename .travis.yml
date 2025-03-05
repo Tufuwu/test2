@@ -1,20 +1,15 @@
-dist: bionic
-language: python
+os: linux
+dist: focal
 
-python:
-  - '3.6'
+language: minimal
 
-install: sudo ./.ci/install_dependencies.sh $HOME/tools
+services:
+  - docker
 
-before_script:
-    - export PATH=$HOME/tools:$PATH
-    # the install script makes $HOME/.nextflow, owned by root with permissions
-    # tha tmake the tests fail because when nextflow runs, it tries to write
-    # there
-    - sudo chmod 777 --recursive $HOME/.nextflow
+install:
+  - docker-compose -f test/docker-compose.yml -p brainzutils_test build
 
 script:
-  - tox
-
-notifications:
-  email: false
+  - docker-compose -f test/docker-compose.yml -p brainzutils_test up -d redis musicbrainz_db
+  - docker-compose -f test/docker-compose.yml -p brainzutils_test run --rm test
+  - docker-compose -f test/docker-compose.yml -p brainzutils_test down
