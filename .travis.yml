@@ -1,15 +1,20 @@
-dist: xenial
+dist: bionic
+language: python
 
-langauge: python
+python:
+  - '3.6'
 
-python: "3.6"
+install: sudo ./.ci/install_dependencies.sh $HOME/tools
 
-before_install:
-  - sudo apt-get update
+before_script:
+    - export PATH=$HOME/tools:$PATH
+    # the install script makes $HOME/.nextflow, owned by root with permissions
+    # tha tmake the tests fail because when nextflow runs, it tries to write
+    # there
+    - sudo chmod 777 --recursive $HOME/.nextflow
 
-install:
-  - sudo apt install python3-pip
-  - sudo pip3 install -r test-requirements.txt
-  - sudo pip3 install tox
+script:
+  - tox
 
-script: tox .
+notifications:
+  email: false
