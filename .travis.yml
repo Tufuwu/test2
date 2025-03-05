@@ -1,48 +1,78 @@
-os: linux
-dist: xenial
-language: python
-matrix:
-  include:
-    - python: 3.6
-      env: TOXENV=flake8
-    - python: 3.6
-      env: TOXENV=black
-    - python: 3.6
-      env: TOXENV=mysql
-      services:
-        - mysql
-      before_script:
-        - mysql -u root -e "DROP DATABASE IF EXISTS app; CREATE DATABASE app DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci"
-        - mysql -u root -e "CREATE USER 'mysqluser'@'localhost' IDENTIFIED BY 'mysqluserpassword';"
-        - mysql -u root -e "GRANT ALL ON app.* TO 'mysqluser'@'localhost';"
-    - python: 3.6
-      env: TOXENV=mssql
-      services:
-        - docker
-      before_install:
-        - docker pull mcr.microsoft.com/mssql/server:2017-CU8-ubuntu
-        - docker run --name mssql -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Password_123" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-CU8-ubuntu
-        - docker ps
-        - sleep 60
-        - docker logs -t mssql
-      after_failure:
-        - docker logs -t mssql
-    - python: 3.7
-      env: TOXENV=postgres
-      services:
-        - postgresql
-      before_script:
-        - psql -U postgres -c "CREATE DATABASE app;"
-        - psql -U postgres -c "CREATE USER pguser WITH PASSWORD 'pguserpassword';"
+branches:
+  only:
+    - develop
+    - /^releases\/.*$/
 
-    - python: 3.6
-      env: TOXENV=mongodb
-      services:
-        - mongodb
+jobs:
+  fast_finish: true
+  include:
+    - stage: "style check"
+      python: '3.7'
+      os: linux
+      language: python
+      script:
+        - black --diff --check .
+        - flake8
+    - stage: "unit tests"
+      python: '2.7'
+      os: linux
+      language: python
+    - python: '3.5'
+      os: linux
+      language: python
+    - python: '3.6'
+      os: linux
+      dist: bionic
+      language: python
+    - python: '3.7'
+      os: linux
+      dist: bionic
+      language: python
+    - python: '3.8'
+      os: linux
+      dist: bionic
+      language: python
+
 install:
-  - pip install tox
-  - pip install codecov
+  - pip install --upgrade -r requirements.txt
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
+        pip install --upgrade black;
+    fi
+  - python setup.py install
+  - python setup.py build_ext --inplace
+  - pip list
+
 script:
-  - tox
+  - PYTHONPATH=. coverage run $(which pytest)
+  - cd $TRAVIS_BUILD_DIR
+  - echo -e "TRAVIS_BUILD_DIR:" ${TRAVIS_BUILD_DIR}
+  - echo -e "PWD:" ${PWD}
+  - git clone https://github.com/LLNL/Caliper.git
+  - cd Caliper
+  - mkdir build && mkdir install
+  - cd build
+  - cmake -DCMAKE_INSTALL_PREFIX=../install ../
+  - make VERBOSE=1
+  - make install
+  - export PATH=${PWD}/../install/bin:${PATH}
+  - echo -e "PATH=" ${PATH}
+  - cd ../../
+  - echo -e "PWD:" ${PWD}
+  - which cali-query
+  - if [[ "$(echo ${TRAVIS_PYTHON_VERSION} | sed 's/\.//g')" -ge "36" ]]; then
+      pip install --upgrade scikit-build;
+      pip install --upgrade --no-cache-dir --no-deps -v timemory==3.2.0.dev4 --install-option=--disable-{c,gotcha,tools};
+    fi
+    # pip install --upgrade --no-cache-dir --no-deps -v --pre timemory --install-option=--disable-{c,gotcha,tools};
+  - PYTHONPATH=. coverage run $(which pytest)
+
 after_success:
-  - codecov
+  - codecov --env PYTHON_VERSION --required --flags "${TEST_SUITE}${TRAVIS_OS_NAME}"
+
+notifications:
+  email:
+    recipients:
+      - bhatele@cs.umd.edu
+      - brink2@llnl.gov
+    on_success: change
+    on_failure: always
