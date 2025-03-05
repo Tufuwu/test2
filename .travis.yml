@@ -1,11 +1,10 @@
-dist: xenial
 language: python
-install: pip install -r requirements/dev.txt
 python:
+  - "3.4"
+  - "3.6"
   - "3.8"
-  - "3.9"
+cache: pip
+install:
+  - pip install -r requirements_test.txt
 script:
-  - pylama .
-  - pytest tests/
-  - black . --check --diff
-  - isort . --check --diff
+  - py.test --cov-report term-missing --cov cabrillo -v
