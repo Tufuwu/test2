@@ -1,40 +1,34 @@
-language: generic
+language: python
+
 sudo: false
 
-env:
-  global:
-    - INSTALL_EDM_VERSION=1.9.2
-      PYTHONUNBUFFERED="1"
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "pypy"
+  - "pypy3.5"
+  - "nightly"
 
 matrix:
+  fast_finish: true
+  allow_failures:
+  - python: "nightly"
   include:
-    - env: RUNTIME=2.7
-    - env: RUNTIME=3.5
-    - env: RUNTIME=3.6
-    - os: osx
-      env: RUNTIME=2.7
-    - os: osx
-      env: RUNTIME=3.5
-    - os: osx
-      env: RUNTIME=3.6
-
-cache:
-  directories:
-    - ${HOME}/.cache
-
-before_install:
-  - mkdir -p ~/.cache/download
-  - if [[ ${TRAVIS_OS_NAME} == "linux" ]]; then tools/install_edm_linux.sh; export PATH="${HOME}/edm/bin:${PATH}"; fi
-  - if [[ ${TRAVIS_OS_NAME} == "osx" ]]; then tools/install_edm_osx.sh; export PATH="${PATH}:/usr/local/bin"; fi
-  - edm envs create travisci --version ${RUNTIME}
-  - edm install -e travisci -y cython numpy
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 install:
-  - edm run -e travisci -- python setup.py develop
+  - pip install --editable .[dev]
 
 script:
-  - edm run -e travisci -- python -m unittest discover -v concorde
+  - pytest
 
 after_success:
-  - edm run -- pip install codecov
-  - edm run -- codecov
+  - coverage combine
+  - coveralls
+
+notifications:
+  email: false
