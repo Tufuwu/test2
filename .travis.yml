@@ -1,27 +1,42 @@
-# -*- encoding: utf-8 -*-
-# ======================================================================================
-# Copyright and other protections apply. Please see the accompanying LICENSE file for
-# rights and restrictions governing use of this software. All rights not expressly
-# waived or licensed are reserved. If that file is missing or appears to be modified
-# from its original, then please contact the author before viewing or using this
-# software in any capacity.
-# ======================================================================================
-
-dist: xenial
-os: linux
+# Python version that is used in prod
 language: python
-version: ~> 1.0
+python: "3.9"
 
-python:
-  - "3.7"
-  - "3.8"
-  - "3.9"
+# Cache install data
+cache:
+    - pip
+    - npm
 
+# Databases
+services:
+    - postgresql
+    - redis
+
+# Don't build on branch commits; only on master + PRs
+branches:
+    only:
+        - main
+
+# Nodejs/npm version that is used in prod
 before_install:
-  - sudo apt-get -y install graphviz
+    - nvm install 10.23.0
+    - nvm use 10.23.0
 
+# Dependencies
 install:
-  - pip install tox-travis
+    - pip install -r dev-requirements.txt
+    - npm install
 
+# Before tests
+before_script:
+    - wget --no-check-certificate "https://docs.google.com/uc?export=download&id=1E8zboqLDRdufXnXZJUrLnSLih_ATaekO" -O api.zip
+    - unzip api.zip
+    - psql -c 'create database travis_ci_test;' -U postgres
+    - flask sql init
+    - flask redis update
+    - npm run build
+
+# Run tests
 script:
-  - tox
+    - pre-commit run --all-files --show-diff-on-failure
+    - pytest
