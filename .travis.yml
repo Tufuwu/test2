@@ -1,130 +1,31 @@
-language: python
-cache: pip
-services:
-  - postgresql
-  - mysql
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
+dist: xenial
 addons:
-  postgresql: "10"
-env:
-  global:
-    - IMPORT_EXPORT_POSTGRESQL_USER=postgres
-    - IMPORT_EXPORT_POSTGRESQL_PASSWORD=
-    - IMPORT_EXPORT_MYSQL_USER=root
-    - IMPORT_EXPORT_MYSQL_PASSWORD=
-  matrix:
-    - DJANGO="Django==2.2.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - DJANGO="Django==2.2.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - DJANGO="Django==2.2.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-    - DJANGO="Django==3.0.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - DJANGO="Django==3.0.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - DJANGO="Django==3.0.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-    - DJANGO="Django==3.1.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - DJANGO="Django==3.1.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - DJANGO="Django==3.1.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-    - DJANGO="Django==3.2.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - DJANGO="Django==3.2.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - DJANGO="Django==3.2.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-matrix:
-  include:
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    # unsupported Django versions, included in allow_failures
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-  allow_failures:
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.9"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.8"
-      env: DJANGO="https://github.com/django/django/archive/main.tar.gz" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.7"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.6"
-      env: DJANGO="Django==2.1.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.7"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=postgres
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=mysql-innodb
-    - python: "3.6"
-      env: DJANGO="Django==2.0.*" IMPORT_EXPORT_TEST_TYPE=sqlite
-
+  apt:
+    sources:
+      - sourceline: 'deb https://debian.neo4j.org/repo stable/'
+        key_url: 'https://debian.neo4j.org/neotechnology.gpg.key'
+    packages:
+      - neo4j=1:3.5.*
+sudo: true
+language: python
+python:
+- '3.6'
+services:
+- neo4j
+before_install:  # disable auth for neo4j and restart it...
+- sudo sed -i 's/#dbms.security.auth_enabled=false/dbms.security.auth_enabled=false/g' /etc/neo4j/neo4j.conf
+- sudo systemctl restart neo4j
 install:
-  - pip install -q $DJANGO
-  - pip install -r requirements/base.txt
-  - pip install -r requirements/test.txt
-  - pip install coveralls
+- pip install -e .
+- pip install -r test-requirements.txt
 script:
-   - PYTHONPATH=".:tests:$PYTHONPATH" python -Wall -m coverage run --omit='setup.py' --source=. tests/manage.py test core --settings=
-   - if python -c 'import sys; sys.exit(1 - (sys.version_info >= (3, 6)))'; then isort --check-only import_export tests; fi
-after_success:
-  - coveralls
+- make test
+deploy:
+  provider: pypi
+  user: lyftpypi
+  password: # see https://docs.travis-ci.com/user/encryption-keys/
+    secure: QNMqTeJBIQ7TGhN1sLLy0N7s9EXaQVf3rkpACyKhDbmqiqtNHJ6KY9Wr+sRW8bE9hhEj4yC+ayZRRMfJyi74HtOUkwaChTgyOLHuWQQyJVHSPXSA5qWwZRt+ab1vwFL3is0SoNVjvA0VeQ2d6aPKhE8JRgTbTwL7sqrPZhft34cjoWfgk6VZ8R/NnPaMWnN7VdIkoFDfR0PXexpUXpoAjgQKelkZ9Q82PdgeWV259cmC75W9fIxsfwJoghPQhIIFgpypdoOSbSLblSqwsPS3hofAwdhnLjNcncswlKzipRdev/LDJLjxJkl2xNe77PvxlfYV3HdpcZerr8ZRLGrmgr6xKLkrVfzg6Z0vPVhUsnO0tzWq/bJxoXnH/Cz3500zq6eFzqEJrLXxcNTAM0CCbFmC8q8ykkT+e+tWJqutuPbmOtghYkWbv+K/Z0/0XSvY4iPJ3QvDlLh4jDdpU2tFFDESWa7NBjuM9ttho/q7yQP8yNwmlw8FdRXf4lsYSMm9VDppJDBdXN6ZNr2WMxlhqHREMO2rG8fcEbPs2wAzH46TTsN8LxFRCF0B58ciKLkN0ejPPvxJSzUR/qlbQfgP/XtL1mhLAsrbIW8zAgN2enE8VzTo35/t0q/D53W/PDUg0c8hh/3/ZmSJP29QLk7MQQcZaN2DQBkrx3dUeEq1YOA=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: lyft/cartography
