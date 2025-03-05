@@ -1,19 +1,13 @@
+dist: focal
+
 language: python
-dist: xenial
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
+python: "3.9"
+
 install:
-  - pip install -e .
-  - pip install astroid>=2.0
-  - pip install pylint>=2.0
+  - pip3 install -r requirements.txt
+  - ansible --version
+
 script:
-  - pylint --rcfile=.pylintrc infinisdk setup.py
-jobs:
-  include:
-    - stage: deploy
-      script:
-        - python setup.py sdist bdist_wheel
-        - twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
-      if: tag IS present
+  - cd ./tests/
+  - python3 ./files/fake_api.py &
+  - make
