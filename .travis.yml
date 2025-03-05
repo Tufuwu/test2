@@ -1,21 +1,46 @@
-os: linux
-dist: bionic
-language: cpp
+name: Test
+on: [push, pull_request]
 
-services:
-  - docker
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.8]
+    env:
+      ETH_PRIVATE_KEY: ${{ secrets.ETH_PRIVATE_KEY }}
+      ENDPOINT: ${{ secrets.ENDPOINT }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      MANAGER_TAG: "1.8.1-stable.0"
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
 
-before_install:
-  - wget https://raw.githubusercontent.com/tue-robotics/tue-env/master/ci/install-package.sh
-  - wget https://raw.githubusercontent.com/tue-robotics/tue-env/master/ci/build-package.sh
-  - wget https://raw.githubusercontent.com/tue-robotics/tue-env/master/ci/test-package.sh
-  - export PACKAGE=${TRAVIS_REPO_SLUG#*/}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
 
-install:
-  - bash install-package.sh --package=$PACKAGE --branch=$TRAVIS_BRANCH --commit=$TRAVIS_COMMIT --pullrequest=$TRAVIS_PULL_REQUEST
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+      with:
+        remote: true
 
-before_script:
-  - bash build-package.sh --package=$PACKAGE
+    - name: Update host dependencies
+      run: sudo apt-get update --fix-missing
 
-script:
-  - bash test-package.sh --package=$PACKAGE
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install codecov 
+    - name: Lint with flake8
+      run: flake8 .
+
+    - name: Deploy manager 
+      run: bash ./helper-scripts/run_ganache.sh
+
+    - name: Run tests
+      run: bash ./scripts/run_tests.sh
