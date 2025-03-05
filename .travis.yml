@@ -1,31 +1,44 @@
+sudo: false
+
 language: python
-jobs:
-  - python: "2.6"
-    dist: trusty
-    allow_failure: true
-  - python: "2.7"
-  - python: "3.2"
-    dist: trusty
-    allow_failure: true
-  - python: "3.3"
-    dist: trusty
-    allow_failure: true
-  - python: "3.4"
-    allow_failure: true
-  - python: "3.5"
-    allow_failure: true
-  - python: "3.6"
-    allow_failure: true
-  - python: "3.7"
-    allow_failure: true
-  - python: "3.8"
-  - python: "3.9"
-  - python: "pypy"
-    allow_failure: true
-  - python: "pypy3"
-    allow_failure: true
-install: pip install coveralls
-script:
-  - coverage run --branch --source=crc32 test.py
-after_success:
-  - coveralls
+
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+
+env:
+    global:
+        - NUMPY_VERSION=stable
+        - ASTROPY_VERSION=stable
+        - SETUP_CMD='test'
+        - PIP_DEPENDENCIES=''
+        - CONDA_DEPENDENCIES='scipy pytest-cov'
+
+matrix:
+    include:
+        # Try Astropy development version
+        - python: 2.7
+          env: ASTROPY_VERSION=development
+        - python: 3.5
+          env: ASTROPY_VERSION=development
+
+        # Try older numpy versions
+        - python: 2.7
+          env: NUMPY_VERSION=1.10
+        - python: 2.7
+          env: NUMPY_VERSION=1.9
+        - python: 2.7
+          env: NUMPY_VERSION=1.8
+        - python: 2.7
+          env: NUMPY_VERSION=1.7
+
+install:
+  - git clone git://github.com/astropy/ci-helpers.git
+  - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+
+script: py.test
+
+addons:
+    code_climate:
+        repo_token: 3b872f454e56a7bae149bd9ec6b24c83e6d5856ce08035a8c2e739e67c410d70
