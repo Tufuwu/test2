@@ -1,22 +1,31 @@
+dist: xenial
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb https://debian.neo4j.org/repo stable/'
+        key_url: 'https://debian.neo4j.org/neotechnology.gpg.key'
+    packages:
+      - neo4j=1:3.5.*
+sudo: true
 language: python
 python:
-- '2.7'
-- '3.4'
-- '3.5'
 - '3.6'
-- '3.7'
-- '3.8'
-dist: xenial
+services:
+- neo4j
+before_install:  # disable auth for neo4j and restart it...
+- sudo sed -i 's/#dbms.security.auth_enabled=false/dbms.security.auth_enabled=false/g' /etc/neo4j/neo4j.conf
+- sudo systemctl restart neo4j
 install:
-  - python setup.py install
-before_script:
-- export TZ=Europe/Brussels
-script: python setup.py test
+- pip install -e .
+- pip install -r test-requirements.txt
+script:
+- make test
 deploy:
   provider: pypi
-  user: benverbeken
-  password:
-    secure: QyyK2pEWyxmL2P9STdRFqbTWvzcoKprplaGRjZDNCrD8uGLQgNvxmIBWpTjPkbNsSzdRXCrt0ndjIIbKt+W7i6m7NqXNcoq4CXrVt01fGlQPzAMMyJRGEXmYEa7Ph/691RPBJziE91zSbxIUdby4so8Re42ZMq1lrnPySp4W7hqjshDx+N0kZKkycLpRPkD+GseD41UZpic6tT95nGEnd5wRG/RmLctS1TdUG9Ht9uOMKiSOQl5KfkRERI6N+ukKnCw4npxyTiwAUoQivS1cneF8IvHAmnzMTbXv0PBZ+4TTjmk/hCPWfVEow441ZNS90XSILTo0vk9MdVidXE8/f9BDtzgEAy/+Kim3++Axpd6XSTxAf55BVuO5fR+e7MNJ+3t6jl4CMQxXi+k4ZsWp/IURvOorxJDjBnPJytGA22icdjO4HmimF5uM7yH/wbrKjXQ4HlGVNFWNYd4jZzyCmEyyco5A6FamfocPV5dND/tydPdb++0FQ6zTzpqg0JVUgw8T5f/xEeSpTjLJbLZpDQoAExooKWuHYgKdfG1d4xHvZc9T18boCEBXjvQaBPJ576k0ivL1ovvxouuFL/uHuu7fk0mwUMl1u98TZum/BIHoNajYTdY7ni3DBDgNfoQf1oMs1UvgoOWWYBaKEAYpWOoHBN8M8N0CgCxF8CTSaOA=
+  user: lyftpypi
+  password: # see https://docs.travis-ci.com/user/encryption-keys/
+    secure: QNMqTeJBIQ7TGhN1sLLy0N7s9EXaQVf3rkpACyKhDbmqiqtNHJ6KY9Wr+sRW8bE9hhEj4yC+ayZRRMfJyi74HtOUkwaChTgyOLHuWQQyJVHSPXSA5qWwZRt+ab1vwFL3is0SoNVjvA0VeQ2d6aPKhE8JRgTbTwL7sqrPZhft34cjoWfgk6VZ8R/NnPaMWnN7VdIkoFDfR0PXexpUXpoAjgQKelkZ9Q82PdgeWV259cmC75W9fIxsfwJoghPQhIIFgpypdoOSbSLblSqwsPS3hofAwdhnLjNcncswlKzipRdev/LDJLjxJkl2xNe77PvxlfYV3HdpcZerr8ZRLGrmgr6xKLkrVfzg6Z0vPVhUsnO0tzWq/bJxoXnH/Cz3500zq6eFzqEJrLXxcNTAM0CCbFmC8q8ykkT+e+tWJqutuPbmOtghYkWbv+K/Z0/0XSvY4iPJ3QvDlLh4jDdpU2tFFDESWa7NBjuM9ttho/q7yQP8yNwmlw8FdRXf4lsYSMm9VDppJDBdXN6ZNr2WMxlhqHREMO2rG8fcEbPs2wAzH46TTsN8LxFRCF0B58ciKLkN0ejPPvxJSzUR/qlbQfgP/XtL1mhLAsrbIW8zAgN2enE8VzTo35/t0q/D53W/PDUg0c8hh/3/ZmSJP29QLk7MQQcZaN2DQBkrx3dUeEq1YOA=
   on:
     tags: true
-    python: 3.6
+    distributions: sdist bdist_wheel
+    repo: lyft/cartography
