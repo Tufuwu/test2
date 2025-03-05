@@ -1,38 +1,49 @@
+arch:
+  - amd64
+  - ppc64le
 language: python
-python: '3.5'
 sudo: false
-env:
-  global:
-    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
-    - SEGFAULT_SIGNALS=all
-  matrix:
-    - TOXENV=check
-    - TOXENV=docs
-{% for env in tox_environments %}{{ '' }}
-    - TOXENV={{ env }},codecov
-{% endfor %}
+addons:
+  apt:
+    packages:
+      - libgnutls-dev
 
-before_install:
-  - python --version
-  - uname -a
-  - lsb_release -a
-install:
-  - pip install tox
-  - virtualenv --version
-  - easy_install --version
-  - pip --version
-  - tox --version
-script:
-  - tox -v
-after_failure:
-  - more .tox/log/* | cat
-  - more .tox/*/log/* | cat
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
+
 cache:
   directories:
     - $HOME/.cache/pip
-notifications:
-  email:
-    on_success: never
-    on_failure: always
+
+python:
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9
+  - 3.10
+  - 3.11-dev
+  - pypy3
+  - pypy3.6
+  - pypy3.7
+
+services:
+  - mysql
+  - postgresql
+
+env:
+  global:
+    - TEST_DB_HOST=localhost
+    - TEST_MYSQL_USER=root
+    - TEST_POSTGRES_USER=postgres
+
+matrix:
+  allow_failures:
+    - python: pypy3
+
+install:
+  - pip install tox tox-travis coveralls
+
+script:
+  - tox
+
+after_success:
+  - coveralls
