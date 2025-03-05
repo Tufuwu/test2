@@ -1,49 +1,19 @@
----
-language: python
-os: linux
-dist: bionic
-cache: pip
+language: generic
 
-addons:
-  apt:
-    packages:
-    - build-essential
-    - cmake
-    - libffi-dev
-    - libpcre3-dev
-
-branches:
-  only:
-    - master
-    - devel
+env:
+  - CONDA_PY=3.7 CONDA_NPY=1.16
 
 before_install:
-  - pip install tox twine
+  - sudo apt-get update
+  - sudo apt-get install gfortran
+  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH=$HOME/miniconda/bin:$PATH
+  - conda config --set always_yes true
+  - conda config --set anaconda_upload no
+  - conda install -q python=$CONDA_PY numpy=$CONDA_NPY conda-build
+  - python --version
+  - python -c 'import numpy; print(numpy.__version__)'
 
-script:
-  - tox -- $(git ls-files '*.py')
-
-jobs:
-  include:
-    - env: TOXENV=lint
-      python: 3.7
-    - env: TOXENV=py35
-      python: 3.5
-    - env: TOXENV=pypy3
-      python: pypy3
-    - env: TOXENV=py36
-      python: 3.6
-    - env: TOXENV=py37
-      python: 3.7
-    - env: TOXENV=py38
-      python: 3.8
-    - env: TOXENV=py3-devel
-      python: 3.7
-    - stage: deploy
-      env: TOXENV=py3-master
-      python: 3.7
-      deploy:
-        provider: script
-        script: twine upload --skip-existing dist/libyang-*.tar.gz
-        on:
-          tags: true
+install:
+  - conda build --python=$CONDA_PY --numpy=$CONDA_NPY .
