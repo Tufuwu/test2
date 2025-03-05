@@ -1,20 +1,27 @@
-sudo: false
+language: python
 
-jobs:
-  include:
-    - stage: test
-      name: "Unit tests"
-      language: python
-      python:
-        - "3.6"
-      install: pip install tox-travis codecov
-      script: tox
-      after_success:
-        - codecov
-    - stage: test
-      name: "Docker image build test"
-      services:
-        - docker
-      env:
-        - TAG="temp"
-      script: docker-compose build
+python:
+  - '2.7'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+  - '3.8'
+
+os: linux
+
+env:
+  PYTHONPATH: :test
+  PYTHONIOENCODING: utf-8
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - make check-pylint
+  - make check-tox
+  - make check-translations
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
+  - make test
+
+after_success:
+  - codecov
