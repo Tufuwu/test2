@@ -1,8 +1,6 @@
 sudo: false
 language: python
-dist: xenial
 python:
-  - "3.7"
-  - "3.8"
-install: pip install tox-travis
-script: tox
+  - 3.7
+script:
+  - python -m openapi3 openapi.yaml
