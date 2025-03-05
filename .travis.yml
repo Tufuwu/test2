@@ -1,13 +1,19 @@
-language: go
-go:
-  - 1.x
-before_install:
-  - go get github.com/golang/lint/golint github.com/stretchr/testify/assert
-before_script:
-  - go get -d ./...
+language: python
+
+jobs:
+  include:
+    - python: "3.6"
+    - python: "3.7"
+    - python: "3.8"
+    - python: "3.9"
+    - python: "nightly"
+  allow_failures:
+    - python: "nightly"
+
+install:
+  - pip install pipenv
+  - pipenv install --dev
+
 script:
-  - ./scripts/licensecheck.sh
-  - go build ./...
-  - ./scripts/golint.sh
-  - go vet ./...
-  - go test -v ./...
+  - pipenv run lint
+  - pipenv run test
