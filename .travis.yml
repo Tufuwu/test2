@@ -1,18 +1,6 @@
-sudo: false
-language: python
-dist: xenial
-cache:
-  pip: true
-python:
-  - "3.6"
-  - "3.7"
-install:
-- pip install --upgrade pip codecov
-- pip install --upgrade -r requirements.txt
-- python setup.py develop
-script:
-- nosetests
-after_success:
-- codecov
-notifications:
-  email: false
+# swy: as seen here <https://github.com/travis-ci/travis-ci/issues/2285> but made prettier with custom wrappers
+_fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && echo -ne '\033[1;33m' && echo $1 && echo -ne '\e[0m'; }
+_fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
+
+
+echo HI THERE!
