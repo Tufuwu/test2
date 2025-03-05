@@ -1,34 +1,17 @@
----
+sudo: false
 language: python
-cache: pip
-dist: xenial
 python:
-  - '3.6'
-  - '3.7'
-  - '3.8'
-env:
-  matrix:
-    - TOXENV=docs
-    - DJANGO=111
-    - DJANGO=22
-    - DJANGO=30
-    - DJANGO=31
-    - DJANGO=master
-services:
-  - redis
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: DJANGO=master
+  - "3.8"
+cache: pip
 install:
-  - pip install --upgrade codecov tox
-before_script:
-  - |
-    if [[ -z $TOXENV ]]; then
-      export TOXENV=py$(echo $TRAVIS_PYTHON_VERSION | sed -e 's/\.//g')-dj$DJANGO
-    fi
-  - echo $TOXENV
+  - pip install -r requirements/test.txt
 script:
-  - tox -e $TOXENV
+  - python manage.py dbcreate
+  - make test
+  - cd docs && make html
+  - cd ..
 after_success:
   - codecov
+branches:
+    only:
+      - master
