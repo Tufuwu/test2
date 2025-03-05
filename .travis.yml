@@ -1,15 +1,14 @@
-os: linux
-dist: focal
+language: python
 
-language: minimal
+addons:
+  apt:
+    packages:
+      - graphviz
 
-services:
-  - docker
+python:
+  - '3.8'
+  # - '3.9'  # sklearn does not support 3.9 yet it seems
+install: pip install .[dev]
 
-install:
-  - docker-compose -f test/docker-compose.yml -p brainzutils_test build
-
-script:
-  - docker-compose -f test/docker-compose.yml -p brainzutils_test up -d redis musicbrainz_db
-  - docker-compose -f test/docker-compose.yml -p brainzutils_test run --rm test
-  - docker-compose -f test/docker-compose.yml -p brainzutils_test down
+script: python -m pytest
+after_success: bash <(curl -s https://codecov.io/bash) -t 94150045-9c0d-4b51-8116-e1606ab7a72e
