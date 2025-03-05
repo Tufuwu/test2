@@ -1,24 +1,49 @@
 language: python
+
+services:
+  - redis
+  - mongodb
+
 python:
-  - "3.6"
   - "3.7"
   - "3.8"
-  - "3.9"
-cache: pip
+
+env:
+  - DJANGO=3.1.2
+  - DJANGO=2.2.16
+
+sudo: true
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - tcl8.5
+
 before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+  - git clone https://github.com/antirez/disque.git disque_server
+  - "cd disque_server/src && make && PREFIX=../ make install && cd -"
+  - "./disque_server/bin/disque-server &"
+  - ./disque_server/bin/disque PING
+
 install:
-  - pip install --upgrade pip
-  - pip install --upgrade importlib-metadata  # Solve a python 3.7 install bug: https://app.travis-ci.com/github/IBM/causallib/jobs/566048347
-  - pip install --upgrade pytest coverage
-  - pip install .  # test local installation is running properly
-  - pip install .[contrib]  # test optional install
+  - pip install -q django==$DJANGO
+  - pip install -r requirements.txt
+  - pip install pytest --upgrade
+  - pip install pytest-django codecov sphinx poetry
+  - poetry install
+
 script:
-  - pip freeze --all
-  - coverage run --source=. --omit=*__init__.py,setup.py -m pytest
+  - coverage run --source=django_q -m py.test
+  - sphinx-build -b html -d docs/_build/doctrees  -nW docs docs/_build/html
+
 after_success:
-  - coverage report
-  - coverage xml
-  - ./cc-test-reporter after-build
+  - codecov
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/cbcff78c4be241602332
+    on_success: change
+    on_failure: always
+    on_start: never
