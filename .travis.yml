@@ -1,14 +1,15 @@
-dist: bionic
+dist: xenial
 
-services:
-  - docker
+langauge: python
 
-if: branch = master AND type = push
+python: "3.6"
 
-script:
-  - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-  - docker build -t ${DOCKERHUB_ORG}/pspipe .
-  - docker run --rm ${DOCKERHUB_ORG}/pspipe python -c "import camb"
+before_install:
+  - sudo apt-get update
 
-after_success:
-  # - docker push ${DOCKERHUB_ORG}/pspipe:latest
+install:
+  - sudo apt install python3-pip
+  - sudo pip3 install -r test-requirements.txt
+  - sudo pip3 install tox
+
+script: tox .
