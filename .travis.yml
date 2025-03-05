@@ -1,25 +1,19 @@
 language: python
-python: 3.6
-
-branches:
-  only:
-    - master
-
+python:
+  - 3.7
+  - 3.8
+  - 3.9
+os:
+  - linux
 env:
-  matrix:
-    - TASK=tests
-    - TASK=isort
-    - TASK=flake8
-
+  global:
+    - COV_THRESHOLD=95
+before_install:
+  - python --version
+  - pip install -U pip
 install:
-  - if [ $TASK = tests ]; then pip install requests-oauthlib; fi
-  - if [ $TASK == isort ]; then pip install isort; fi
-  - if [ $TASK == flake8 ]; then pip install flake8; fi
-
+  - pip install -r dev-requirements.txt
 script:
-  - if [ $TASK = tests ]; then python setup.py test; fi
-  - if [ $TASK = isort ]; then isort --diff --check-only; fi
-  - if [ $TASK = flake8 ]; then flake8; fi
-
-notifications:
-  email: false
+  - pytest sklearn_genetic/ --verbose --color=yes --assert=plain --cov-fail-under=$COV_THRESHOLD --cov-config=.coveragerc --cov=./ -p no:warnings
+after_success:
+  - codecov
