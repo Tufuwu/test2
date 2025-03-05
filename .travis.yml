@@ -1,37 +1,42 @@
+# Python version that is used in prod
 language: python
-python:
-  "3.8"
-cache: pip
+python: "3.9"
 
-addons:
-  chrome: stable
-  
+# Cache install data
+cache:
+    - pip
+    - npm
+
+# Databases
+services:
+    - postgresql
+    - redis
+
+# Don't build on branch commits; only on master + PRs
+branches:
+    only:
+        - main
+
+# Nodejs/npm version that is used in prod
 before_install:
-  - export LANGUAGE=en_GB.UTF-8
+    - nvm install 10.23.0
+    - nvm use 10.23.0
 
+# Dependencies
 install:
-  - |
-    latest=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-    wget https://chromedriver.storage.googleapis.com/$latest/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip
-  - export PATH=$PATH:$(pwd)
-  - chmod +x chromedriver
-  - pip install -r requirements.txt
-  - pip install coveralls codeclimate-test-reporter pycodestyle
+    - pip install -r dev-requirements.txt
+    - npm install
 
+# Before tests
 before_script:
-  - export PATH=$PATH:/usr/lib/chromium-browser/
-  - python manage.py collectstatic --noinput
+    - wget --no-check-certificate "https://docs.google.com/uc?export=download&id=1E8zboqLDRdufXnXZJUrLnSLih_ATaekO" -O api.zip
+    - unzip api.zip
+    - psql -c 'create database travis_ci_test;' -U postgres
+    - flask sql init
+    - flask redis update
+    - npm run build
 
+# Run tests
 script:
-  - pycodestyle . --exclude=migrations,importer*
-  - python manage.py check
-  - python manage.py makemigrations --check --dry-run
-  - coverage run manage.py test --verbosity=2
-
-after_success:
-  - coveralls
-  - codeclimate-test-reporter
-
-notifications:
-  webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
+    - pre-commit run --all-files --show-diff-on-failure
+    - pytest
