@@ -1,26 +1,25 @@
-sudo: false
 language: python
 
+python:
+  - "nightly"
+  - "3.9"
+  - "3.8"
+  - "3.7"
+  - "3.6"
+
 matrix:
-  include:
-      - python: 3.6
-      - python: 3.7
+  allow_failures:
+  - python: nightly
 
 install:
-  - travis_retry pip install . pytest isort black mypy readme_renderer
-  - pip list
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - unset VIRTUAL_ENV
+  # Travis needs to update pip/setuptools
+  - pip install --upgrade setuptools pip
+  - pip install .
+  - pip install doit
+  - doit install_test_deps
 
-script:
-  - echo "$TRAVIS_PYTHON_VERSION"
-  - ./tests/run_tests.py
-
-  # Check wheather the imports were sorted correctly.
-  - isort -c -rc ptpython tests setup.py examples
-
-  - black --check ptpython setup.py examples
-
-  # Type checking
-  - mypy ptpython
-
-  # Ensure that the README renders correctly (required for uploading to PyPI).
-  - python -m readme_renderer README.rst > /dev/null
+# command to run tests
+script: doit test
