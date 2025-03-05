@@ -1,18 +1,18 @@
-matrix:
-  include:
-  - language: python
-    python: 2.7
-    install: pip install jinja2 pyyaml
-    env: TARGET=python-test
-  - language: generic
-    env: TARGET=vm-lint
-    services:
-    - docker
-  - language: generic
-    dist: xenial
-    before_install:
-    - wget https://packages.chef.io/files/stable/chefdk/4.2.0/ubuntu/16.04/chefdk_4.2.0-1_amd64.deb
-    - sudo dpkg -i chefdk_4.2.0-1_amd64.deb
-    env: TARGET=vm-generate-triggers
+language: python
 
-script: make "${TARGET}"
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7-dev"
+  - "nightly"
+  - "pypy3.5"
+
+install:
+ travis_retry pip install coverage coveralls
+
+script:
+  - python -m coverage run --source=cologne_phonetics test_cologne_phonetics.py
+
+after_success:
+- coveralls
