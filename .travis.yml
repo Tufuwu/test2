@@ -1,39 +1,38 @@
-dist: focal
 language: python
-cache: pip
-
-matrix:
-    include:
-        - python: 3.6
-          env: TOXENV=py36
-        - python: 3.7
-          env: TOXENV=py37
-        - python: 3.8
-          env: TOXENV=py38
-        - python: 3.9
-          env: TOXENV=py39
-        - python: 3.8
-          env: TOXENV=qa,doc
+dist: xenial
+sudo: false
+python:
+  - "3.8"
+  - "3.7"
+  - "3.6"
+  - "3.5"
 
 addons:
-    apt:
-        packages:
-            - graphviz
-            - libsdl-dev
-            - python3-dev
-            - python3-numpy
-            - libsdl-image1.2-dev
-            - libsdl-mixer1.2-dev
-            - libsdl-ttf2.0-dev
-            - libsmpeg-dev
-            - libportmidi-dev
-            - libavformat-dev
-            - libswscale-dev
-            - libjpeg-dev
-            - libfreetype6-dev
+  postgresql: "9.5"
+  apt:
+    packages:
+    - postgresql-9.5-postgis-2.4
+    - binutils
+    - libproj-dev
+    - python3-gdal
+    - libgeos-dev
+    - libyaml-dev
+    - libgnutls28-dev
 
 install:
-  - pip uninstall virtualenv -y
-  - pip install --upgrade --ignore-installed setuptools pip tox coveralls
-script: tox -vv
-after_success: if [ "$TOXENV" == "py38" ]; then coveralls; fi
+  - "pip install coveralls"
+  - "pip install -r requirements/test.txt"
+
+before_script:
+  - psql -c 'create database osmcha;' -U postgres
+  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d osmcha
+  - psql -c 'CREATE EXTENSION postgis_topology;' -U postgres -d osmcha
+
+script:
+- coverage run manage.py test --settings=config.settings.tests
+
+after_success:
+  - coveralls
+
+notifications:
+  email: false
