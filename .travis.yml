@@ -1,43 +1,38 @@
-sudo: false
-dist: xenial
 language: python
-notifications:
-  email: false
-python:
-  - 3.8
-  - 3.7
-  - 3.6
-
-stages:
-  - lint
-  - test
-
-
-.lint: &lint
-  git:
-    submodules: false
-  python: 3.6
-  env:
-    - MINREQ=0
-  stage: lint
-  script: make lint
-
-jobs:
-  include:
-    - *moban
-    - *lint
-
-stage: test
+python: '3.5'
+sudo: false
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+  matrix:
+    - TOXENV=check
+    - TOXENV=docs
+{% for env in tox_environments %}{{ '' }}
+    - TOXENV={{ env }},codecov
+{% endfor %}
 
 before_install:
-  - if [[ -f min_requirements.txt && "$MINREQ" -eq 1 ]]; then
-      mv min_requirements.txt requirements.txt ;
-    fi
-  - test ! -f rnd_requirements.txt ||
-    pip install --no-deps -r rnd_requirements.txt
-  - test ! -f rnd_requirements.txt || pip install -r rnd_requirements.txt ;
-  - pip install -r tests/requirements.txt
+  - python --version
+  - uname -a
+  - lsb_release -a
+install:
+  - pip install tox
+  - virtualenv --version
+  - easy_install --version
+  - pip --version
+  - tox --version
 script:
-  - make test
-after_success:
-  codecov
+  - tox -v
+after_failure:
+  - more .tox/log/* | cat
+  - more .tox/*/log/* | cat
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
+cache:
+  directories:
+    - $HOME/.cache/pip
+notifications:
+  email:
+    on_success: never
+    on_failure: always
