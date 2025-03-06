@@ -1,38 +1,27 @@
 language: python
-python: '3.5'
-sudo: false
-env:
-  global:
-    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
-    - SEGFAULT_SIGNALS=all
-  matrix:
-    - TOXENV=check
-    - TOXENV=docs
-{% for env in tox_environments %}{{ '' }}
-    - TOXENV={{ env }},codecov
-{% endfor %}
 
-before_install:
-  - python --version
-  - uname -a
-  - lsb_release -a
+python:
+  - '2.7'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+  - '3.8'
+
+os: linux
+
+env:
+  PYTHONPATH: :test
+  PYTHONIOENCODING: utf-8
+
 install:
-  - pip install tox
-  - virtualenv --version
-  - easy_install --version
-  - pip --version
-  - tox --version
+  - pip install -r requirements.txt
+
 script:
-  - tox -v
-after_failure:
-  - more .tox/log/* | cat
-  - more .tox/*/log/* | cat
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
-cache:
-  directories:
-    - $HOME/.cache/pip
-notifications:
-  email:
-    on_success: never
-    on_failure: always
+  - make check-pylint
+  - make check-tox
+  - make check-translations
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then pip install kodi-addon-checker && make check-addon; fi
+  - make test
+
+after_success:
+  - codecov
