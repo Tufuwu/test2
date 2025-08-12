@@ -1,28 +1,38 @@
-language: python
-sudo: required
-dist: xenial
-python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
+sudo: false
+
+language: generic
+
+os: osx
+osx_image: xcode9.4
+
 env:
-  - DJANGO_VERSION=1.8
-  - DJANGO_VERSION=1.11
-  - DJANGO_VERSION=2.0
-  - DJANGO_VERSION=2.1
-  - DJANGO_VERSION=2.2
-matrix:
-  exclude:
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.0'
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.1'
-    - python: '2.7'
-      env: 'DJANGO_VERSION=2.2'
+  - PYVER="38"
+  - PYVER="37"
+  - PYVER="36"
+
 install:
-  - pip install -U django==$DJANGO_VERSION
-  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then pip install black; fi'
+  # Install and Configure Miniconda.
+  - source .travis_support/install_miniconda.sh
+
+  # Create the test environment.
+  - export CONDA_ENV_TYPE="tst_py${PYVER}"
+  - source .travis_support/create_env.sh
+
+  # Install the package and dependencies.
+  - pip install -e .
+
+# Run tests and measure test coverage.
 script:
-  - python manage.py test
-  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then black --check zen_queries; fi'
+  - coverage erase
+  - coverage run --source . setup.py test
+  - coverage report -m
+
+# Report coverage.
+after_success:
+  - export CONDA_ENV_TYPE="dpl"
+  - source .travis_support/create_env.sh
+  - coveralls
+
+# Disable email notifications.
+notifications:
+  email: false
