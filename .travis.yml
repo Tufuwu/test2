@@ -1,27 +1,37 @@
+sudo: false
+dist: xenial
 language: python
-
-matrix:
-  include:
-  - python: 2.7
-    env: TOXENV=py27
-  - python: 3.5
-    env: TOXENV=py35
-  - python: 3.5
-    env: TOXENV=lint
-
-before_script:
-  - pip install tox
-
+install:
+      - pip install tox
 script:
-  - tox
+      - tox
+matrix:
+    include:
+        - env: TOXENV=pep8
+        - python: 3.7
+          env: TOXENV=placement
+        - python: pypy3
+          env: TOXENV=pypy3
+        - python: 3.5
+          env: TOXENV=py35
+        - python: 3.6
+          env: TOXENV=py36
+        - python: 3.7
+          env: TOXENV=py37
+        - python: 3.8
+          env: TOXENV=py38
+        - python: 3.5
+          env: TOXENV=py35-pytest
+        - python: 3.6
+          env: TOXENV=py36-pytest
+        - python: 3.7
+          env: TOXENV=py37-pytest
+        - python: 3.7
+          env: TOXENV=py37-failskip
+        - python: 3.7
+          env: TOXENV=py37-limit
+        - python: 3.7
+          env: TOXENV=py37-prefix
 
-deploy:
-  provider: pypi
-  skip_existing: true
-  user: $PYPI_USER
-  password: $PYPI_PASSWORD
-  distributions: sdist bdist_wheel
-  on:
-    repo: camptocamp/marabunta
-    branch: master
-    tags: true
+notifications:
+      irc: "chat.freenode.net#gabbi"
