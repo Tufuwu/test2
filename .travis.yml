@@ -1,12 +1,13 @@
 language: python
-sudo: false
 python:
-  - "2.7"
-  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
 install:
-  - pip install -r requirements.txt
-  - pip install codecov coverage
+  - "pip install poetry"
+  - "poetry install -v"
 script:
-- nosetests --verbose --with-coverage --cover-erase --cover-package=catkin_lint test
-after_success:
-  - codecov
+  - "poetry run flake8 example/"
+  - "poetry run flake8 tests/"
+  - "poetry run pytest"
