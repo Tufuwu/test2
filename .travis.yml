@@ -1,18 +1,23 @@
 language: python
-cache: pip
-matrix:
-  include:
-    - python: 2.7
-    - python: 3.9
-    - python: 3.8
-    - arch: arm64
-      python: 3.7
-    - arch: amd64
-      python: 3.7
-    - python: 3.6
-    - python: 3.5
-    - python: pypy
-    - python: pypy3
+dist: xenial
+
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+# command to install dependencies
 install:
-  - "pip install mock"
-script: "python -m unittest discover -p *_test.py"
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libhdf5-serial-dev
+  - python -m pip install --upgrade pip setuptools wheel virtualenv
+  - pip install tox tox-travis codecov
+  #- pip install -r requirements_test.txt
+
+script:
+  #- check-manifest
+  - tox
+
+# Run code coverage
+after_success: codecov
