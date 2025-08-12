@@ -1,26 +1,18 @@
 language: python
-python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
-  - '3.8'
-  # To see available versions:
-  #   s3cmd ls s3://travis-python-archives/binaries/ubuntu/16.04/x86_64/
-  - pypy
-  - pypy3
-dist: xenial
-
-matrix:
+jobs:
   include:
-    - os: linux
-      language: python
-      python: '3.8'
-      env: OLD_CRYPTOGRAPHY=2.6.1
+    - python: 3.6
+      env: NUMPY_VERSION=1.15.4
+    - python: 3.7
+      env: NUMPY_VERSION=1.15.4
+    - python: 3.8
+      env: NUMPY_VERSION=1.15.4
+    - python: 3.9
+      env: NUMPY_VERSION=1.19.4
 
-script:
-  - ci/travis.sh
+install:
+  - pip install numpy==$NUMPY_VERSION scipy matplotlib>=3 cython>=0.28
+  - dev/build.sh
 
-branches:
-  except:
-    - /^dependabot/.*/
+# command to run tests
+script: dev/test.sh
