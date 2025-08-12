@@ -1,18 +1,21 @@
 language: python
-sudo: false
-dist: xenial
 python:
-- 3.6
-- 3.7
-- 3.8
-install:
-- pip install -e .[testing]
-script: pytest tests
+  - "2.6"
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "nightly"
+# command to install dependencies
+install: pip install simplejson minimock coverage
+# command to run tests
+script:
+- make test
 deploy:
   provider: pypi
-  user: vmalloc
+  user: "gpodder"
   password:
-    secure: IiRY8I5mIBebKxMUNygddVLyyd0j9gRG5hly5r07nIeqqB01cUhrHgTnfqQPBbVYsDzFYRNM4p2+D94YlsRyO/ylGXehNpA/Dmb5tVDLtycbQVBx4rkRwEa0nfcXaF3MO1P0NHbEi3scVhLiaYqTGWsEKGIhUrgWyckuAh99FKo=
+    secure: "LhMmayKATJlyob0pkRvcDfie5vi8O+BdpMgJ224C+SXpwpQafPfHNUFzi3+IkS7z3KbYx/jTpP6gcfmEXnG/nI74U0U4fnY1KQixEfwcRTLHNDnx72qe4zXkXAtBzXCRROnyOTir1AolPiC8lpiL+ZBc8cBwan+322IZdlL8t5g="
   on:
     tags: true
-    repo: getslash/flux
