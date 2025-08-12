@@ -1,31 +1,36 @@
-language: python
-python:
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
-  - 3.9
-env:
-  - DJANGO="Django==1.11.*"
-  - DJANGO="Django==2.0.*"
-  - DJANGO="Django==2.1.*"
-  - DJANGO="Django==2.2.*"
-  - DJANGO="Django==3.0.*"
-  - DJANGO="Django==3.1.*"
-  - DJANGO="Django==3.2.*"
+language: cpp
+dist: trusty
 matrix:
-  fast_finish: true
-  exclude:
-    - python: 3.5
-      env: DJANGO="Django==3.0.*"
-    - python: 3.5
-      env: DJANGO="Django==3.1.*"
-    - python: 3.5
-      env: DJANGO="Django==3.2.*"
+  include:
+  - os: linux
+    env: CONDA=3.7
+  - os: osx
+    env: CONDA=3.7
+before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
+    wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${CONDA:0:1}-latest-$OS.sh
+    bash miniconda.sh -b -p $HOME/miniconda
+    export PATH="$HOME/miniconda/bin:$PATH"
+    conda config --set always_yes yes --set changeps1 no
+    conda config --add channels conda-forge
+    conda update -q conda
+    conda install -q conda-build
+    conda create -q -n test-environment python=$CONDA
+    source activate test-environment
+  - pip install Cython
+  - python -m pip install 'pybind11>=2.4'
+  - pip install pytest-cov
+  - pip install codecov --ignore-installed certifi
+  - pip install quadprog
+  - pip install jaxlib
+  - pip install jax
 install:
-  - travis_retry pip install $DJANGO
-  - travis_retry pip install requests
-  - pip install -e .
-script: python runtests.py
-notifications:
-  email: false
+  - python setup.py develop
+
+script:
+  - pytest
+
+after_sucess:
+  - codecov
