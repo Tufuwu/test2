@@ -1,20 +1,19 @@
-dist: xenial
-sudo: true
-
-before_install:
-  - python3 setup.py install
-  - sudo apt-get -y update
-
-install:
-  - pip install pytest-cov
-  - pip install .[ja]
-
+sudo: false
+services: mongodb
 language: python
 python:
-  - "3.5"
-  - "3.6"
   - "3.7"
-
-script:
-  - python3 -m pytest
-  - ./test.sh
+  - "3.8"
+  - "3.9"
+  - "pypy3"
+env:
+  - DJANGO="Django>=2.2,<2.3"
+  - DJANGO="Django>=3.0,<3.2"
+  - DJANGO="Django>=3.2,<3.3"
+before_install:
+  - pip install poetry
+install:
+    - poetry install -q
+    - poetry run pip install -q $DJANGO
+# command to run tests
+script: poetry run python -m pytest
