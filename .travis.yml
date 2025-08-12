@@ -1,16 +1,15 @@
 language: python
-sudo: false
-python:
-    - "3.6"
-    - "3.7"
-    - "3.8"
-    - "3.9"
+os:
+  - linux
+matrix:
+  fast_finish: true
+  include:
+  - python: 3.6
+  - python: 3.7
+  - python: 3.8
+  - python: 3.9
+  - python: pypy3
 install:
-    - pip install -U pip wheel coverage codecov
-    - pip install -r requirements.txt pytest pytest-mock
-    - python setup.py develop
-script:
-    - coverage run -m py.test -v tests/ && codecov
-cache:
-    directories:
-        - $HOME/.cache/pip
+  - pip install -U setuptools>=39.2.0
+  - python setup.py develop
+script: python setup.py test
