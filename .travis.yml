@@ -1,20 +1,24 @@
 language: python
-python:
-    - "2.7"
-    - "3.6"
-    - "3.7"
-    - "3.8"
-env:
-    - REQUIREMENTS=minimal_requirements.txt
-    - REQUIREMENTS=requirements.txt
+matrix:
+  include:
+  - python: 3.6
+    cache: pip
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-4.8
+before_install:
+- |
+  sudo apt-get -qq update;
+  sudo apt-get install -y libeigen3-dev;
 install:
-    - pip install -r $REQUIREMENTS
-    - pip install --upgrade pytest
-    - pip install pytest-cov codecov
-before_script:
-    - "export MPLBACKEND=Agg"
-script: 
-    - python -m pytest --cov=fgivenx
-after_success: 
-    - codecov
-    - bash <(curl -s https://codecov.io/bash)
+- |
+    pip install -r requirements.txt
+    pip install pytest pytest-cov pytest-randomly wheel codecov
+    pip install -e .
+script:
+- make coverage
+after_success:
+- codecov
