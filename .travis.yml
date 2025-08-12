@@ -1,12 +1,20 @@
 language: python
+
+dist: xenial
+
 python:
+  - "2.7"
+  - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
-sudo: false
-cache: pip
+  - "pypy3.5"
+
 install:
- - pip install -r docs/requirements.txt
- - pip install pytest
- - pip install -e .
-script: pytest
+  - python setup.py develop
+
+script:
+  - python -m pytest
+
+notifications:
+  slack: greynir:38FfPr1S8oZRNFMmt47mzT3z
