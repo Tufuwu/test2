@@ -1,18 +1,33 @@
-sudo: false
+# For more information about the configurations used in this file, please
+# see the Travis CI documentation: https://docs.travis-ci.com
+
+dist: xenial
 language: python
+sudo: false
 python:
-  - '2.7'
-  - '3.5'
-  - '3.6'
-  - '3.7'
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
 install:
-  - make setup
+  - pip install tox-travis
+  - pip install coveralls
+  - pip install -r requirements/testing.txt
+
 script:
-  # Check build
-  - make
-  # Flake8
-  - make lint
-  # confirm doc builds look good
-  - make docs
-  # Testing with coverage
-  - make travis-test
+  - flake8
+  - tox
+  - coveralls
+
+notifications:
+  email:
+    on_success: change  # [always|never|change]
+    on_failure: always  # [always|never|change]
