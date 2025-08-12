@@ -1,16 +1,26 @@
-dist: xenial
+os: linux
+dist: bionic
 language: python
-python:
-    - 3.5
-    - 3.6
-    - 3.7
-    - 3.8-dev
-install:
-    - pip install -r requirements.txt
-    - pip install -r requirements-dev.txt
-    - pip install -e .
-script:
-    - flake8
-    - pytest --cov
-after_success:
-    - coveralls
+
+jobs:
+  include:
+    - name: "MTGJSON5 Tox - Python 3.6"
+      before_install:
+        - "pip install -U pip setuptools wheel tox-travis"
+      install: "pip install -r requirements_test.txt"
+      script: tox
+      python: "3.6"
+
+    - name: "MTGJSON5 Tox - Python 3.7"
+      before_install:
+        - "pip install -U pip setuptools wheel tox-travis"
+      install: "pip install -r requirements_test.txt"
+      script: tox
+      python: "3.7"
+
+    - name: "MTGJSON5 Tox - Python 3.8"
+      before_install:
+        - "pip install -U pip setuptools wheel tox-travis"
+      install: "pip install -r requirements_test.txt"
+      script: tox
+      python: "3.8"
