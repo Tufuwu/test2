@@ -1,18 +1,21 @@
+---
+dist: bionic
+
 language: python
-cache: pip
+
+# Run tests against each supported version while docs and style are only
+# considered on the latest supported version.
 matrix:
   include:
-    - python: 2.7
-    - python: 3.4
-    - python: 3.5
     - python: 3.6
-    - python: pypy2.7-7.3.1
-    - python: pypy3.6-7.3.1
+      env: TOXENV=py36
     - python: 3.7
-      dist: xenial
+      env: TOXENV=py37
     - python: 3.8
-      dist: xenial
-    - python: 3.9-dev
-      dist: xenial
-install: pip install tox
-script: tox -e py
+      env: TOXENV=py38,docs,style
+
+install:
+  - pip install tox
+
+script:
+  - tox
