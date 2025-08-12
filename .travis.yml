@@ -1,33 +1,75 @@
 language: python
-env:
-  - BOTO_CONFIG=/dev/null
-python:
-  - "2.7"
-  - "3.6"
-before_install:
-  # install and run latest DynamoDB Local
-  - mkdir /tmp/dynamodb_local
-  - wget -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz | tar xz --directory /tmp/dynamodb_local
-  - java -Djava.library.path=/tmp/dynamodb_local/DynamoDBLocal_lib -jar /tmp/dynamodb_local/DynamoDBLocal.jar -sharedDb -inMemory &
-install:
-  - pip install -r requirements.txt
-  - pip install flake8
-script:
-  - flake8 --ignore=E501
-  - mkdir dump && cp -a test/testTable dump
-  # test basic restore and backup
-  - python dynamodump.py -m restore -r local -s testTable -d testRestoredTable --host localhost --port 8000 --accessKey a --secretKey a
-  - python dynamodump.py -m backup -r local -s testRestoredTable --host localhost --port 8000 --accessKey a --secretKey a
-  - python test/test.py
-  # test wildcard restore and backup
-  - python dynamodump.py -m restore -r local -s "*" --host localhost --port 8000 --accessKey a --secretKey a
-  - rm -rf dump/test*
-  - python dynamodump.py -m backup -r local -s "*" --host localhost --port 8000 --accessKey a --secretKey a
-  - python test/test.py
-  # test prefixed wildcard restore and backup
-  - python dynamodump.py -m restore -r local -s "test*" --host localhost --port 8000 --accessKey a --secretKey a --prefixSeparator ""
-  - rm -rf dump/test*
-  - python dynamodump.py -m backup -r local -s "test*" --host localhost --port 8000 --accessKey a --secretKey a --prefixSeparator ""
-  - python test/test.py
+sudo: false
+cache: pip
+dist: focal
+
 matrix:
-    fast_finish: true
+  include:
+    - python: 3.8
+      env: TOXENV=pre-commit
+
+    - python: 3.5
+      env: TOXENV=py35-2.2
+    - python: 3.6
+      env: TOXENV=py36-2.2
+    - python: 3.7
+      env: TOXENV=py37-2.2
+    - python: 3.8
+      env: TOXENV=py38-2.2
+    - python: pypy3
+      env: TOXENV=pypy3-2.2
+
+    - python: 3.6
+      env: TOXENV=py36-3.0
+    - python: 3.7
+      env: TOXENV=py37-3.0
+    - python: 3.8
+      env: TOXENV=py38-3.0
+    - python: pypy3
+      env: TOXENV=pypy3-3.0
+
+    - python: 3.6
+      env: TOXENV=py36-3.1
+    - python: 3.7
+      env: TOXENV=py37-3.1
+    - python: 3.8
+      env: TOXENV=py38-3.1
+    - python: pypy3
+      env: TOXENV=pypy3-3.1
+
+    - python: 3.6
+      env: TOXENV=py36-3.2
+    - python: 3.7
+      env: TOXENV=py37-3.2
+    - python: 3.8
+      env: TOXENV=py38-3.2
+    - python: 3.9
+      env: TOXENV=py39-3.2
+    - python: pypy3
+      env: TOXENV=pypy3-3.2
+
+    - python: 3.8
+      env: TOXENV=py38-main
+    - python: 3.9
+      env: TOXENV=py39-main
+    # TODO: Enable when Python 3.10 is released.
+    #    - python: 3.10
+    #      env: TOXENV=py310-main
+    - python: pypy3
+      env: TOXENV=pypy3-main
+  allow_failures:
+    - python: 3.8
+      env: TOXENV=py38-main
+    - python: 3.9
+      env: TOXENV=py39-main
+    # TODO: Enable when Python 3.10 is released.
+    #    - python: 3.10
+    #      env: TOXENV=py10-main
+    - python: pypy3
+      env: TOXENV=pypy3-main
+install:
+  - pip install coverage tox
+script:
+  - tox
+after_success:
+  - coveralls
