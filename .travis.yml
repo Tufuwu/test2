@@ -1,29 +1,15 @@
-# Travis CI build for pygount.
+sudo: false
 language: python
-
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-
-install:
-  - pip install --requirement dev-requirements.txt
+python: '3.7'
 
 script:
-  # Validate coding guidelines.
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pre-commit run --all-files; fi
-  # Run the test suite.
-  - python setup.py develop
-  - pytest --verbose
-  # Build and install the package.
-  - python setup.py bdist_wheel
-  - python setup.py install
-  # Test drive the installed pygount.
-  - pygount --version
-  - pygount --help
-  - pygount pygount *.cfg *.yaml
-  - pygount --format=summary pygount *.cfg *.yaml
-
+  - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $HOME/miniconda.sh
+  - bash $HOME/miniconda.sh -b -u -p $HOME/miniconda
+  - export PATH="$HOME/minicoonda/bin:$PATH"
+  - hash -r
+  - pip install nose coverage coveralls flake8 scikit-image
+  - pip install -e .
+  - flake8
+  - nosetests -sv --with-doctest --no-byte-compile --with-coverage --cover-package=tftb
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then coveralls; fi
+  coveralls
