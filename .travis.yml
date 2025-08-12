@@ -1,19 +1,14 @@
-sudo: false
-services: mongodb
 language: python
 python:
-  - "3.7"
-  - "3.8"
-  - "3.9"
-  - "pypy3"
-env:
-  - DJANGO="Django>=2.2,<2.3"
-  - DJANGO="Django>=3.0,<3.2"
-  - DJANGO="Django>=3.2,<3.3"
-before_install:
-  - pip install poetry
+- '2.7'
+- '3.5'
+- '3.6'
+- '3.7'
+- '3.8'
+- '3.9'
 install:
-    - poetry install -q
-    - poetry run pip install -q $DJANGO
-# command to run tests
-script: poetry run python -m pytest
+- pip install .
+- pip install -r requirements.txt
+- pip install rednose coverage coveralls
+script: nosetests test --rednose --verbosity=3 --with-coverage --cover-package ncclient
+after_success: coveralls
