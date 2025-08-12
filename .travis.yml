@@ -1,15 +1,17 @@
-sudo: false
+sudo: required  # for 3.7, see https://github.com/travis-ci/travis-ci/issues/9069#issuecomment-425720905
 language: python
-python: '3.7'
-
-script:
-  - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $HOME/miniconda.sh
-  - bash $HOME/miniconda.sh -b -u -p $HOME/miniconda
-  - export PATH="$HOME/minicoonda/bin:$PATH"
-  - hash -r
-  - pip install nose coverage coveralls flake8 scikit-image
-  - pip install -e .
-  - flake8
-  - nosetests -sv --with-doctest --no-byte-compile --with-coverage --cover-package=tftb
-after_success:
-  coveralls
+dist: xenial
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9-dev"
+jobs:
+  include:
+  - python: "3.8"
+    env: TOXENV=lint
+install: pip install tox-travis
+script: tox
