@@ -1,18 +1,29 @@
 language: python
+cache: pip
 
-python:
-    - "2.7.6"
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
+matrix:
+  include:
+    - python: 2.7
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+    - python: 3.8
+    - python: 3.9-dev
+    - python: pypy
+    - python: pypy3
 
 install:
-    - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then travis_retry pip install -r py2_requirements.txt; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then travis_retry pip install -r py3_requirements.txt; fi
+ - pip install coverage
 
 script:
-    - make test
+ - coverage run --source=olefile -m nose tests
 
-sudo: required
-dist: trusty
+after_success:
+ - pip install coveralls
+ - coveralls
+
+after_script:
+ - coverage report
+ - pip install pycodestyle pyflakes
+ - pyflakes .
+ - pycodestyle --statistics --count .
