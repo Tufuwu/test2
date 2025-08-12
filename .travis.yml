@@ -1,18 +1,14 @@
 language: python
-
 python:
-    - "2.7.6"
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-
-install:
-    - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then travis_retry pip install -r py2_requirements.txt; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then travis_retry pip install -r py3_requirements.txt; fi
-
+    - "3.9"
+services:
+    - docker
+before_install:
+    - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    - sudo apt-get update
+    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+    - docker build -t draft-kings-fun .
 script:
-    - make test
-
-sudo: required
-dist: trusty
+    - docker run draft-kings-fun flake8 draftfast
+    - docker run draft-kings-fun nosetests --with-coverage --cover-package=.
