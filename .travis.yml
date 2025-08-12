@@ -1,48 +1,29 @@
-if: tag IS present OR type = pull_request OR (branch = master AND type = push)   # we only CI the master, tags and PRs
 language: python
 
-# Main test jobs: The lowest and highest current Python versions.
-python:
-  - 3.6
-  - 3.9
+cache: pip
 
-# List additional test configurations individually, instead of using
-# matrix expansion, to prevent an exponential growth of test jobs.
 matrix:
   include:
-    # Python versions that are EOL, but we still support.
-    - python: 3.5
-      arch: amd64
-    # pydot itself should be architecture-independent. Still, some
-    # limited testing on other architectures to catch corner cases.
-    - python: 3.5
-      arch: ppc64le
+    - python: 3.6
+    - python: 3.7
+    - python: 3.8
     - python: 3.9
-      arch: ppc64le
-    # Additional job to run linters that only need to run once.
-    - name: black
-      language: python
-      python: 3.6
-      arch: amd64
-      addons:
-        apt:
-          packages: []
-      install:
-        - pip install -e .[dev]
-      script:
-        - black --check --diff .
-
-addons:
-  apt:
-    packages:
-      - graphviz
 
 install:
-  - pip install -U pip setuptools
-  - python setup.py sdist
-  - pip install dist/pydot-*.tar.gz
-  - pip install -r requirements.txt
+  - make
+  - pip install poetry
+  - poetry install
 
 script:
-  - cd test/
-  - python pydot_unittest.py
+  - make tests
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/55cf16b611593edcb09d
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
