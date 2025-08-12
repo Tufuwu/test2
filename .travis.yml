@@ -1,9 +1,29 @@
-sudo: false
-
 language: python
 
-python:
-  - "3.6"
+jobs:
+    include:
+        - python: "2.7"
+        - python: "pypy"
+        - python: "3.4"
+        - python: "3.5"
+        - python: "3.6"
+        - python: "3.7"
+          dist: xenial
+
+env:
+    -
+    - LANG=
+
+install:
+    - python setup.py --quiet install
 
 script:
-  - python validate.py
+    - python test_docformatter.py
+    - docformatter setup.py
+
+after_success:
+    - pip install --quiet coverage
+    - make coverage
+
+    - pip install --quiet coveralls
+    - coveralls
