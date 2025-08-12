@@ -1,19 +1,32 @@
-dist: bionic
-before_install:
-  - sudo apt-get update
-  - >
-    sudo apt-get install -y
-    flake8
-    gettext
-    gir1.2-gtk-3.0
-    python3
-    python3-dev
-    python3-gi
-    python3-pytest
-    xvfb
+# Use faster LXD containers
+arch: arm64-graviton2
+virt: lxd
+os: linux
+dist: focal
+group: edge
+
+language: python
+sudo: false
+cache:
+  pip: true
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9-dev"
+  - "pypy3"
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - python: '3.9-dev'
+
+install:
+  - travis_retry pip install --upgrade pip setuptools
+  - travis_retry pip install -r requirements.txt
+  - travis_retry pip install -r test-requirements.txt
+  - python setup.py --version
+
+# Run test
 script:
-  - flake8 .
-  - xvfb-run py.test-3 nfoview
-  - python3 setup.py install --prefix=/tmp/local
-  - python3 setup.py install --root=/tmp/pkg
-  - python3 setup.py clean
+  - pytest -vv
