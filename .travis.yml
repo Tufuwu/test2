@@ -1,14 +1,23 @@
+dist: xenial  # support for Python >= 3.7
 language: python
 python:
-  - 2.7
-  - 3.4
   - 3.5
   - 3.6
-dist: trusty
+  - 3.7
+
 matrix:
   include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-install: "pip install flask peewee"
-script: "python runtests.py"
+    - python: "3.7"
+      env: TOXENV=cover
+    - python: "3.7"
+      env: TOXENV=black
+
+install:
+  - npm i -g elm
+  - pip install tox-travis
+
+script:
+  - tox
+
+after_success:
+  - coveralls
