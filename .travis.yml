@@ -1,75 +1,29 @@
 language: python
-sudo: false
-cache: pip
-dist: focal
-
-matrix:
-  include:
-    - python: 3.8
-      env: TOXENV=pre-commit
-
-    - python: 3.5
-      env: TOXENV=py35-2.2
-    - python: 3.6
-      env: TOXENV=py36-2.2
-    - python: 3.7
-      env: TOXENV=py37-2.2
-    - python: 3.8
-      env: TOXENV=py38-2.2
-    - python: pypy3
-      env: TOXENV=pypy3-2.2
-
-    - python: 3.6
-      env: TOXENV=py36-3.0
-    - python: 3.7
-      env: TOXENV=py37-3.0
-    - python: 3.8
-      env: TOXENV=py38-3.0
-    - python: pypy3
-      env: TOXENV=pypy3-3.0
-
-    - python: 3.6
-      env: TOXENV=py36-3.1
-    - python: 3.7
-      env: TOXENV=py37-3.1
-    - python: 3.8
-      env: TOXENV=py38-3.1
-    - python: pypy3
-      env: TOXENV=pypy3-3.1
-
-    - python: 3.6
-      env: TOXENV=py36-3.2
-    - python: 3.7
-      env: TOXENV=py37-3.2
-    - python: 3.8
-      env: TOXENV=py38-3.2
-    - python: 3.9
-      env: TOXENV=py39-3.2
-    - python: pypy3
-      env: TOXENV=pypy3-3.2
-
-    - python: 3.8
-      env: TOXENV=py38-main
-    - python: 3.9
-      env: TOXENV=py39-main
-    # TODO: Enable when Python 3.10 is released.
-    #    - python: 3.10
-    #      env: TOXENV=py310-main
-    - python: pypy3
-      env: TOXENV=pypy3-main
-  allow_failures:
-    - python: 3.8
-      env: TOXENV=py38-main
-    - python: 3.9
-      env: TOXENV=py39-main
-    # TODO: Enable when Python 3.10 is released.
-    #    - python: 3.10
-    #      env: TOXENV=py10-main
-    - python: pypy3
-      env: TOXENV=pypy3-main
+sudo: required
+dist: xenial
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
 install:
-  - pip install coverage tox
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Set up the conda environment.
+  - conda create -q -n test python=$TRAVIS_PYTHON_VERSION
+  - source activate test
+  # Install the dependencies using conda.
+  - conda install altair matplotlib numba numpy pandas pyteomics pytest -c defaults -c bioconda -c conda-forge
+  - python setup.py install
 script:
-  - tox
-after_success:
-  - coveralls
+  - pytest
