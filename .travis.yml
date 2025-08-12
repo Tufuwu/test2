@@ -1,29 +1,20 @@
+sudo: false
 language: python
-
-# The default xenial (16.04) doesn't seem to read the Let's Encrypt certificates
-# used for https:// in Fedora Copr.
-dist: focal
-
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 matrix:
   include:
-    - python: "3.6"      # because RHEL 7
-    - python: "3.7"      # because RHEL 8
-    - python: "3.9"      # because Fedora stable
-    - python: "3.10-dev" # Fedora 35+
-
-    # copr builds follow, only for PRs
-    - python: "3.9"
-      script: PACKAGE=mock .travis/copr-build
-      name: mock RPM in Copr
-      if: type = pull_request
-
-    - python: "3.9"
-      script: PACKAGE=mock-core-configs .travis/copr-build
-      name: mock-core-configs RPM in Copr
-      if: type = pull_request
+    - { python: 3.6, env: TOXENV=flake8 }
+    - { python: 3.6, env: TOXENV=isort }
+    # Py37 requires xenial distrubution and sudo
+    # See travis-ci/travis-ci#9069
+    - { python: 3.7, dist: xenial, sudo: true }
 
 install:
-  - "pip install -r mock/requirements.txt"
-  - "pip install pytest-cov"
-
-script: PYTHON=python${TRAVIS_PYTHON_VERSION%%-dev} ./mock/run-tests.sh
+  - pip install tox-travis
+  - pip install coveralls
+script: tox
+after_success: if [ -e .coverage ]; then coveralls; fi
