@@ -1,12 +1,7 @@
 language: python
 python:
-  - 3.8
-install:
-  - make travis.requirements
-script:
-  - make test
-after_script:
-  - coveralls
-branches:
-    only:
-      - master
+  - "2.7"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+script: python test/all_tests.py
