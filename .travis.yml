@@ -2,29 +2,26 @@ notifications:
   email:
     false
 
-dist: xenial
 sudo: false
 
 language: python
 
 python:
+  - "3.4"
+  - "3.5"
   - "3.6"
   - "3.7"
-  - "3.8"
-  - "nightly"
-
-before_script:
-  - sudo apt-get install -qq openjdk-8-jre
+  - "3.8-dev"
 
 script:
-  - python setup.py test
-
+  - "python setup.py bdist" # detect syntax errors by byte-compiling
+  - "python setup.py build"
 
 deploy:
   provider: pypi
   user: moxfyre
   password:
-    secure: eNSVgDo1B2hjz7XzPkKLWLfKG5HcRe+ffW5bxpIU2cddq+WFVc/nKGevqnQcbQuKROcShxMwG4Hb7Z13VzC42kTdSwg2IFTXH5tONIE2z/x6EI1WrysK3XoqupnD6vHFIiOWgjklA+RTL6cLkbJZXGYzP/Qf+Ic80iS9mYZxLKM7+fKjRez/bHBd6tXnXUCygniCpWPo/JLaO1FF9rvMNk2ZUOtqCMWGQBgqVQsntrnOj0hHq4Of8sGp3aykicbH9WeJwkr6337rI/ohYBqafsmP6rMhJrK9FfHfadsQVhS1vJNR2hneSbhVgFqFptTKAxDtVdB2flb78X9kEsy6COzAElgwWwPpGTo1VKsxmZ9udMFtVJEjjIfciGrhU1jVnPfSj9XDASh4A3MJydp+TkQ8iz3+AIXPThNCWvEoHmYIGrrziTmih+bw+k0OxX9xN1HcBN8ssj98fv4AGgev110GBA1kM8yt5aDSuo+9c7mZA+352rE2/YZvAqtAORjjDEoPoezm/dg6YTgiXhRUGFpbjiyNKsF/QggVZURn+KOuu4kIsrX6FL0QzJ7Y2kK3b1Cfv94ppggAG7NqsCPO7gTmHCvTXCM+Q83QT+HLXlPjEd9kzfUEyfqjM0ueIRWHDVZ1+St0gwcSaA/N6e2IlIfRPKKU7PQ7mQO9f8lfvb4=
+    secure: IUe0vzjHCYbnWkO4ErYFUoo7SJ/iCNdTboVQ03lSjOhnq2ya+T5kEzXmt8u88yBhA0Ba3EkcM4h4Tfnt5VTVmyyID3eoGgxyMAyBzkgfnT+vzmWSbabsEOR+ERDGfIsEbsr0wHwGdP8GJzYAG9g5D5ikMG5yStE7y2Bj0ckRf3A3MsW+/CGOQL5WbhT63vC2YNu/XuF0lp8XhDHvHPspZbW7/SxwqwbPu8FBCzjDep2Gu+owWf04RIke9wPK5pWCiV74WTEEB+FalZTsvorVWu2pku8d+VMxlmhA5PJQhwIiZbUxkA89Hb/usN/u42PFkcFXEeNutXmRUDaJlH1Wr9JZVz8tIAP1hWQ3B/6yAHIvP+nZIYr5zkXlcBSYKYe5gt/6twRByFF2t6dbJJH0mqrsGdCdxgSkQHs34UUfoxRrfYwMhL9/hBMVicAMO7yqcjo6MEK7P0Nra4USUjXo70q3qEYxu862r/FJ8UsG/nf8WrsAVnwitKThH5eY1hJIpbPTAg/jgpRTVmRYJ8nTgHahxvJkyHGwgD3MY0/9ocfjGMqI2Pup5nlfhnjNVBKEppoETi6TE/gUcd75h1VFxKny/Wn7HQMVwHlk+tsOFKD7mNrDY0kmc7fHSYRVwx88L458h4IoIATkKgwTa5f/B6opLEAMI6Omh+aVFblqwo0=
   on:
     tags: true
-    repo: dlenski/python-zxing
+    repo: dlenski/vpn-slice
