@@ -1,42 +1,80 @@
 language: python
-
 dist: xenial
 
-matrix:
-  include:
-    - python: 3.5
-      env: TOX_ENV='flake8'
-    - python: 3.5
-      env: TOX_ENV='isort'
-    # Django 2.2, run all supported versions for LTS releases
-    - python: 3.5
-      env: DJANGO='dj22'
-    - python: 3.6
-      env: DJANGO='dj22'
-    - python: 3.7
-      env: DJANGO='dj22'
-    - python: 3.8
-      env: DJANGO='dj22'
-    # Django 3.0, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj30'
-    # Django 3.1, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj31'
-      # Django 3.2, always run the lowest supported version
-    - python: 3.6
-      env: DJANGO='dj32'
+cache: pip
 
 install:
-  - pip install coverage isort tox
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then export PY_VER=py35; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then export PY_VER=py36; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then export PY_VER=py37; fi"
-  - "if [[ $TRAVIS_PYTHON_VERSION == '3.8' ]]; then export PY_VER=py38; fi"
-  - "if [[ ${DJANGO}z != 'z' ]]; then export TOX_ENV=$PY_VER; fi"
+  - ./contrib/travis/install.sh
 
 script:
-  - tox -e $TOX_ENV
+  - ./contrib/travis/test.sh
 
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+notifications:
+  irc: "irc.freenode.net#django-guardian"
+
+templates:
+  django22: &django22 DJANGO_VERSION=2.2.*
+  django30: &django30 DJANGO_VERSION=3.0.*
+  django31: &django31 DJANGO_VERSION=3.1.*
+  djangomaster: &djangomaster DJANGO_VERSION=master
+
+  postgres: &postgres DATABASE_URL=postgres://postgres@/django_guardian
+  mysql: &mysql DATABASE_URL=mysql://root:@localhost/django_guardian
+  sqlite: &sqlite  DATABASE_URL=sqlite://
+
+  pgdb: &pgdb
+    addons: {postgresql: "10"}
+  mariadb: &mariadb
+    addons: {mariadb: "10.3"}
+
+
+matrix:
+  fast_finish: true
+  include:
+    - { python: 3.5, env: [*django22, *postgres], <<: *pgdb}
+    - { python: 3.5, env: [*django22, *mysql], <<: *mariadb}
+    - { python: 3.5, env: [*django22, *sqlite]}
+
+    - { python: 3.6, env: [*django22, *postgres], <<: *pgdb}
+    - { python: 3.6, env: [*django22, *mysql], <<: *mariadb}
+    - { python: 3.6, env: [*django22, *sqlite]}
+    - { python: 3.6, env: [*django30, *postgres], <<: *pgdb}
+    - { python: 3.6, env: [*django30, *mysql], <<: *mariadb}
+    - { python: 3.6, env: [*django30, *sqlite]}
+    - { python: 3.6, env: [*django31, *postgres], <<: *pgdb}
+    - { python: 3.6, env: [*django31, *mysql], <<: *mariadb}
+    - { python: 3.6, env: [*django31, *sqlite]}
+
+    - { python: 3.7, env: [*django22, *postgres], <<: *pgdb}
+    - { python: 3.7, env: [*django22, *mysql], <<: *mariadb}
+    - { python: 3.7, env: [*django22, *sqlite]}
+    - { python: 3.7, env: [*django30, *postgres], <<: *pgdb}
+    - { python: 3.7, env: [*django30, *mysql], <<: *mariadb}
+    - { python: 3.7, env: [*django30, *sqlite]}
+    - { python: 3.7, env: [*django31, *postgres], <<: *pgdb}
+    - { python: 3.7, env: [*django31, *mysql], <<: *mariadb}
+    - { python: 3.7, env: [*django31, *sqlite]}
+
+    - { python: 3.8, env: [*django22, *postgres], <<: *pgdb}
+    - { python: 3.8, env: [*django22, *mysql], <<: *mariadb}
+    - { python: 3.8, env: [*django22, *sqlite]}
+    - { python: 3.8, env: [*django30, *postgres], <<: *pgdb}
+    - { python: 3.8, env: [*django30, *mysql], <<: *mariadb}
+    - { python: 3.8, env: [*django30, *sqlite]}
+    - { python: 3.8, env: [*django31, *postgres], <<: *pgdb}
+    - { python: 3.8, env: [*django31, *mysql], <<: *mariadb}
+    - { python: 3.8, env: [*django31, *sqlite]}
+    - { python: 3.8, env: [*djangomaster, *postgres], <<: *pgdb}
+    - { python: 3.8, env: [*djangomaster, *mysql], <<: *mariadb}
+    - { python: 3.8, env: [*djangomaster, *sqlite]}
+
+    - { python: 3.9-dev, env: [*django31, *postgres], <<: *pgdb}
+    - { python: 3.9-dev, env: [*django31, *mysql], <<: *mariadb}
+    - { python: 3.9-dev, env: [*django31, *sqlite]}
+    - { python: 3.9-dev, env: [*djangomaster, *postgres], <<: *pgdb}
+    - { python: 3.9-dev, env: [*djangomaster, *mysql], <<: *mariadb}
+    - { python: 3.9-dev, env: [*djangomaster, *sqlite]}
+  allow_failures:
+    - env: [*djangomaster, *postgres]
+    - env: [*djangomaster, *mysql]
+    - env: [*djangomaster, *sqlite]
