@@ -1,33 +1,35 @@
 language: python
+python: 3.8
+dist: bionic
+sudo: true
 matrix:
   include:
-    - os: linux
-      python: 3.6
-    - os: linux
-      python: 3.7
-    - os: linux
-      python: 3.8
-    - os: linux
-      python: 3.9
-    - os: linux
-      python: pypy3
-    - os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install:
-        - choco install python --version 3.8.0
-        - python -m pip install --upgrade pip
-      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
-    - os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install:
-        - choco install python --version 3.9.0
-        - python -m pip install --upgrade pip
-      env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
+  - env: TOXENV=py37-dj32
+    python: 3.7
+  - env: TOXENV=py38-dj32
+    python: 3.8
+  - env: TOXENV=py39-dj32
+    python: 3.9
+  - env: TOXENV=py310-dj32
+    python: 3.10
+branches:
+  except:
+  - queues
 install:
-  - pip install --upgrade pip
-  - pip install coverage
-  - pip install coveralls
+- pip install coverage codecov coveralls tox
 script:
-  - coverage run -m unittest discover -s lexpy/tests
-  - coverage report -i -m
-  - coveralls
+- "./bin/fake-server &"
+- tox
+after_success:
+- coveralls
+- codecov
+deploy:
+  provider: pypi
+  user: apsl
+  on:
+    tags: true
+    branch: master
+    condition: "$TOXENV = py310-dj32"
+  distributions: sdist bdist_wheel
+  password:
+    secure: Y9nEwnPu8O8biF0rH50ysnwwOkuRERTCWqCLO0bIc8GvELrDghF29UQdK9Ycy9OrEaUwj91AqyR+/5176qfj5hKCVoFZ76Yxwg4XRAZuKITQJNtvgBrbd3dK9QRVBuPHhwa9Jo18a28s223rNexfhXIW6BuR97IWcYwij70cMDOcE1+cOS1QUfBA1ixyn+j6cpsUGcBBv2mnV4Oana37BXs0+3CO4TfRIGHPd305tK+srGuZPs5gpJLj4OHF/2wB833PK8w7KSwShyGjqCjIWJVMAXRR1DyJL1A7nE8YXn/pXwcHZVgu0hhpTsVC5nCwyVT7Hv0WUKIyOplJdb3gYDlog2stRL88UOjawnkWc+c8YGBeF8KfOISFKwcrmeYTVnIRCEt6BmH1rTP4js4I3wrrOiPjgTe1HD0tqdzZ6+IAcP7Pav4ZSnweyWpqoCc+ZOfKKnPBnqptDnb6BuPNSTYKpelJeCRy3ivsRjO7ZSetnXm4lTJmt/bLNrkchGFs0rfn4rq/mJQF6V9B7FO63Fy6kABue4rd2zmEt9WjUIE1KDfCV1kg7JtoOci5BJXuasa1/JzIoaVWV90ahP9mWTARirCPh4esP1PlBnqBTZN0kZboxn9mosQPDFQ9GwdvpqJrSpMBOXc7frmfiLgMyhutGeN6mU1kZmDD3rQyfWA=
