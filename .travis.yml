@@ -1,33 +1,28 @@
-# For more information about the configurations used in this file, please
-# see the Travis CI documentation: https://docs.travis-ci.com
-
-dist: xenial
 language: python
-sudo: false
+sudo: required
+dist: xenial
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-
-cache:
-  directories:
-    - $HOME/.cache/pip
-
-before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
-
+  - '2.7'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+env:
+  - DJANGO_VERSION=1.8
+  - DJANGO_VERSION=1.11
+  - DJANGO_VERSION=2.0
+  - DJANGO_VERSION=2.1
+  - DJANGO_VERSION=2.2
+matrix:
+  exclude:
+    - python: '2.7'
+      env: 'DJANGO_VERSION=2.0'
+    - python: '2.7'
+      env: 'DJANGO_VERSION=2.1'
+    - python: '2.7'
+      env: 'DJANGO_VERSION=2.2'
 install:
-  - pip install tox-travis
-  - pip install coveralls
-  - pip install -r requirements/testing.txt
-
+  - pip install -U django==$DJANGO_VERSION
+  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then pip install black; fi'
 script:
-  - flake8
-  - tox
-  - coveralls
-
-notifications:
-  email:
-    on_success: change  # [always|never|change]
-    on_failure: always  # [always|never|change]
+  - python manage.py test
+  - 'if [ "$TRAVIS_PYTHON_VERSION" = "3.7" ]; then black --check zen_queries; fi'
