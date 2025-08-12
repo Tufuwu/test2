@@ -1,19 +1,32 @@
 language: python
-dist: xenial
+cache:
+  pip: true
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
+- 3.5
+- 3.6
+- 3.7
+- 3.8
 install:
-  - pip install -e .
-  - pip install astroid>=2.0
-  - pip install pylint>=2.0
+- travis_retry pip install tox-travis codecov
 script:
-  - pylint --rcfile=.pylintrc infinisdk setup.py
+- python --version
+- tox -a
+- tox -v
+after_success: codecov
 jobs:
+  fast_finish: true
   include:
-    - stage: deploy
-      script:
-        - python setup.py sdist bdist_wheel
-        - twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
-      if: tag IS present
+  - stage: deploy
+    if: tag IS present
+    python: 3.8
+    script: skip
+    deploy:
+      provider: pypi
+      user: jazzband
+      server: https://jazzband.co/projects/django-simple-history/upload
+      distributions: sdist bdist_wheel
+      password:
+        secure: aFt6pFTwuzSZnYqQpdO9UKtsLplWIBhI7iwH7/aeH2B0hNCvr5pYfZ2UWvQqNh3aIXoJOoIAN5+Na+YGzY+Y54ZAaFAlEtfEiuXe1APuJ0hLuNvo1IJ/t4ABS2aN4W1HEaoVBaykUNHns+Vo3yfIesK4m9qk5TFuMMbdA6vTxg4=
+      on:
+        tags: true
+        repo: jazzband/django-simple-history
