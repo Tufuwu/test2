@@ -1,24 +1,17 @@
-# Link repository to Travis CI
-# https://travis-ci.org/
-
-# Master branch only
-branches:
-  only:
-  - master
-  - dev
-
-# Set the language
 language: python
 python:
-    - "3.7.4"
-
-before_install:
-  - pip install --upgrade pip
-
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+notifications:
+  email: false
 # command to install dependencies
 install:
-  - pip install numpy scipy matplotlib pandas sympy nose statsmodels tabulate
-  - pip install .
-
+  - pip install flake8
+  - pip install -r requirements.txt
 # command to run tests
-script: nosetests
+script:
+  - flake8 .
+  - sed -i.bak "s/^SECRET_KEY = ''$/SECRET_KEY = 'randomstring'/g" tramcar/settings.py
+  - python manage.py test
