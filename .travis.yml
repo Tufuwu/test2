@@ -1,25 +1,8 @@
 language: python
-
-matrix:
-  include:
-    - python: 2.7
-    - python: 3.4
-    - python: 3.5
-    - python: 3.6
-    - python: 3.7
-    - python: "nightly"
-      env: PRE=--pre
-  allow_failures:
-    - python : "nightly"
-
-install:
-  - python -m pip install --upgrade pip
-  - python -m pip install -v .
-  - python -m pip install $PRE --upgrade pytest pytest-cov coverage
-
-script:
-  - coverage run run_tests.py
-  - coverage report -m
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+install: pip install flask && pip install nose
+script: python setup.py test
