@@ -1,23 +1,23 @@
-branches:
-  only:
-    - master
 language: python
+arch:
+  - amd64
+  - ppc64le
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-install: 
-  - pip install tox-travis
-  - pip install codecov
-matrix:
-  include:
-    - python: 3.8
-      env: TOXENV=lint
-    - python: 3.8
-      env: TOXENV=docs
-    - python: 3.8
-      env: TOXENV=isort
-script: tox
+  - '2.7'
+  - '3.9'
+
+install: pip install -r dev-requirements.txt
+
+script:
+  - make clean
+  - make pep8
+  - make flake8
+  - make check
+  - make unittest
+
+notifications:
+  email:
+    - eosplus-dev@arista.com
+
 after_success:
-  - codecov
+  coveralls
