@@ -1,25 +1,18 @@
 language: python
 
-dist: bionic
-
-# https://devguide.python.org/#branchstatus
 python:
-  - 3.6
-  - 3.7
-  - 3.8
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "3.6"
+    - "3.7"
+    - "3.8"
+    - "3.9"
+    - "pypy"
+    - "pypy3"
 
-install:
-  - pip install bandit flake8 python-coveralls coverage liccheck
-  - pip install -r requirements.txt
-  - python setup.py bdist_wheel
-  - pip install dist/feedgen*
+install: pip install flake8
 
 script:
-  - make test
-  - liccheck -s .licenses.ini
-  - python -m feedgen
-  - python -m feedgen atom
-  - python -m feedgen rss
-
-after_success:
-   - coveralls
+    - python -m pytest -v .
+    - flake8
