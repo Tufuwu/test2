@@ -2,32 +2,29 @@ notifications:
   email:
     false
 
+dist: xenial
 sudo: false
 
 language: python
 
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
+  - "nightly"
 
-install:
-  - "pip install ."
-  - "pip install coveralls"
+before_script:
+  - sudo apt-get install -qq openjdk-8-jre
 
 script:
-  - coverage run --source=vipaccess setup.py test
+  - python setup.py test
 
-after_success:
-  - coveralls
 
 deploy:
   provider: pypi
   user: moxfyre
   password:
-    secure: tupb/NhdRSnNRuEid1+Mjlbf08FbEZb3g04uFzs+OdwCw3NCE70T/fXNmGdFhTyqYFfPt/IcDD3QnZ/aFRKQWMIMFzJj/KKhtxCZpH5QiZBH+oTYwZyyYJ8efP/bLRfRX9PFOt5QqufBlrIF9oZte/d/5C9Qis+H+Ta4bbmhJGcCiJW5XBjtPR2NchCUZB3Kp6zfc0oHC0EZfvfnG5J+O+HIouYIK1ZKv6+WwmQIV3I9ZC212vFTyVRQMglubhiqUVNO/Eay/JmbVjTDEU6oI0vcZA7rqLw78p0COCn4cpEj+ptq4NmRGerg6V3eTkwYs+RIFXuSCcbir1YxrDELmonf4hojwKXvgzt55xWDpHIDNEIt+1pAbGHbvrS/smsDO7NK4+oWM0lAQZOVAGwkc0YOqxW56D8z5Z3F9S9RZI0k4DaL4eg16lBy6wWSMXf5XtflaRlHj0P1gErSTcDSd5pwOH/Qmqd6hlwleWNL1V2JQ4D4XdUhA2ftZcAdzjK6nV6yOuAE9gC9/ivrO1bH0a+QpE09o77wfeEwPef4MmmnrEL7P9mAnYgyXyQTt7FbNaYsK6W5g6XhQCwhb4pfHjTpS3MKv2AD9z9IyeYbOShqBywIcBnxsCIdS2kXbccfE+8Xv9kH5KFlt/7w7bXVsNZAchbQ0hURvGDANP/3p5s=
+    secure: eNSVgDo1B2hjz7XzPkKLWLfKG5HcRe+ffW5bxpIU2cddq+WFVc/nKGevqnQcbQuKROcShxMwG4Hb7Z13VzC42kTdSwg2IFTXH5tONIE2z/x6EI1WrysK3XoqupnD6vHFIiOWgjklA+RTL6cLkbJZXGYzP/Qf+Ic80iS9mYZxLKM7+fKjRez/bHBd6tXnXUCygniCpWPo/JLaO1FF9rvMNk2ZUOtqCMWGQBgqVQsntrnOj0hHq4Of8sGp3aykicbH9WeJwkr6337rI/ohYBqafsmP6rMhJrK9FfHfadsQVhS1vJNR2hneSbhVgFqFptTKAxDtVdB2flb78X9kEsy6COzAElgwWwPpGTo1VKsxmZ9udMFtVJEjjIfciGrhU1jVnPfSj9XDASh4A3MJydp+TkQ8iz3+AIXPThNCWvEoHmYIGrrziTmih+bw+k0OxX9xN1HcBN8ssj98fv4AGgev110GBA1kM8yt5aDSuo+9c7mZA+352rE2/YZvAqtAORjjDEoPoezm/dg6YTgiXhRUGFpbjiyNKsF/QggVZURn+KOuu4kIsrX6FL0QzJ7Y2kK3b1Cfv94ppggAG7NqsCPO7gTmHCvTXCM+Q83QT+HLXlPjEd9kzfUEyfqjM0ueIRWHDVZ1+St0gwcSaA/N6e2IlIfRPKKU7PQ7mQO9f8lfvb4=
   on:
     tags: true
-    repo: dlenski/python-vipaccess
+    repo: dlenski/python-zxing
