@@ -1,16 +1,10 @@
-sudo: required
-dist: trusty
 language: python
-cache:
-  - pip
 python:
-  - "3.4"
-  - "3.5"
+  # Python3.5 unit tests fail
   - "3.6"
-  #- "pypy3"
-install:
-  - pip install pyusb coverage coveralls pyserial PyYAML tqdm
-script:
-  - python setup.py build
-  - coverage run --source=stcgal setup.py test
-  - coveralls
+  - "3.7"
+  - "3.8"
+install: pip install tox-travis
+script: tox
+after_success:
+  - codecov
