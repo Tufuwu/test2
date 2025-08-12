@@ -1,12 +1,14 @@
 language: python
-dist: xenial
-sudo: true
 python:
-    - "3.6"
-    - "3.7"
-    - "3.8"
-install: pip install tox
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+# command to install dependencies
+install:
+  - pip install pycryptodome
+  - pip install requests
+
+# command to run tests
 script:
-    - TOXENV=$(tox --listenvs | grep "py${TRAVIS_PYTHON_VERSION/./}-" | tr '\n' ',')
-    - export TOXENV
-    - tox
+  - python test.py
