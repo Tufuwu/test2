@@ -1,18 +1,15 @@
 language: python
-cache: pip
-dist: xenial
 python:
-    - '2.7'
-    - '3.5'
-    - '3.6'
-    - '3.7'
-    - '3.8'
-    - '3.9'
-    - pypy
-    - pypy3
+  - "3.8"
+  - "3.9"
+  - "3.10"
+# command to install dependencies
 install:
-    - pip install codecov tox
+  - pip install -r requirements.txt
+  - pip install pytest pytest-cov
+  - pip install coverage
+# command to run tests
 script:
-    - tox -e py
+  - pytest --cov=./
 after_success:
-    - codecov
+  - bash <(curl -s https://codecov.io/bash)
