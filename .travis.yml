@@ -1,32 +1,23 @@
 branches:
   only:
-  - master
+    - master
+
+dist: bionic
 
 language: python
 
-stages:
-  - linter
-  - test
-
 python:
-  - 3.6
-  - 3.7
-
-env:
-  - DJANGO_SETTINGS_MODULE=etip.settings.dev
-
-install:
-  - pip install -r requirements.txt
-
-script:
-  - cd etip/
-  - python manage.py test
+  - "3.7"
 
 jobs:
   include:
-    - stage: linter
-      python: 3.7
+    - name: "Flake8"
       install:
         - pip install flake8
       script:
-        - flake8 etip/
+        - flake8
+    - name: "Dockerfile lint"
+      install: []
+      services: docker
+      script:
+        - docker run -i hadolint/hadolint:v1.19.0-45-gef91156-alpine < Dockerfile
