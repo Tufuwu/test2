@@ -1,58 +1,42 @@
+sudo: false
+
 language: python
+
 cache: pip
+
+dist: xenial
+
 matrix:
   include:
-    - python: "3.5"
+    - python: 2.7
+      env: TOXENV=py27
+    - python: 3.5
       env: TOXENV=py35
-    - python: "3.6"
+    - python: 3.6
       env: TOXENV=py36
-    - python: "pypy3"
-      env: TOXENV=pypy3
-    - python: "3.7"
+    - python: 3.7
       env: TOXENV=py37
-      dist: xenial
-      sudo: true
-    - python: "3.8"
+    - python: 3.8
       env: TOXENV=py38
-      dist: xenial
-      sudo: true
-    - python: "3.9-dev"
+    - python: 3.9-dev
       env: TOXENV=py39
-      dist: xenial
-      sudo: true
-#power_jobs
-    - python: "3.5"
-      env: TOXENV=py35
-      arch: ppc64le
-    - python: "3.6"
-      env: TOXENV=py36
-      arch: ppc64le
-    - python: "3.7"
-      env: TOXENV=py37
-      dist: xenial
-      sudo: true
-      arch: ppc64le
-    - python: "3.8"
-      env: TOXENV=py38
-      dist: xenial
-      sudo: true
-      arch: ppc64le
-    - python: "3.9-dev"
-      env: TOXENV=py39
-      dist: xenial
-      sudo: true
-      arch: ppc64le
-# Disable version pypy3
-jobs:
-  exclude:
-    - arch: ppc64le
-      python: pypy3
-before_install:
-  - pip install codecov
+    - python: 3.7
+      env: TOXENV=black
+    - python: 2.7
+      env: TOXENV=pep8py2
+    - python: 3.7
+      env: TOXENV=pep8py3
+    - python: 3.7
+      env: TOXENV=doc
+
 install:
-  - pip install tox
+  - pip install --upgrade pip setuptools
+  - pip --version
+  - pip install tox codecov
+  - tox --version
+
 script:
-  - tox -e $TOXENV
+  - tox
+
 after_success:
-    - tox -e coverage-report
-    - codecov
+  - codecov
