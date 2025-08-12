@@ -1,26 +1,16 @@
+version: ~> 1.0
+dist: focal
 language: python
-
-sudo: false
-
+cache: pip
 python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
-  - "3.8"
   - "3.9"
-  - "nightly"
-
-matrix:
-  fast_finish: true
-  allow_failures:
-  - python: "nightly"
-
-install:
-  - pip install --upgrade pytest
-  - pip install --editable .
-
-script:
-  - pytest
-
-notifications:
-  email: false
+  - "3.8"
+  - "3.7"
+  - "3.6"
+addons:
+  apt_packages:
+    - graphviz
+install: pip install .[test] codecov
+script: ./run-tests.py
+before_cache: rm -f $HOME/.cache/pip/log/debug.log
+after_success: codecov
