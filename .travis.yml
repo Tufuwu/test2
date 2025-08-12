@@ -1,15 +1,12 @@
-sudo: false  # Use travis' container based infra
 language: python
-dist: focal
-# Versions are deliberately out of order to get a diverse sample first
+dist: xenial
+sudo: true
 python:
-  - 3.9
-  - 3.6
-  - 3.7
-  - 3.8
-  - pypy3
-cache: pip
-install:
-  - pip wheel -r requirements.txt
-  - pip install -r requirements.txt
-script: python setup.py test
+    - "3.6"
+    - "3.7"
+    - "3.8"
+install: pip install tox
+script:
+    - TOXENV=$(tox --listenvs | grep "py${TRAVIS_PYTHON_VERSION/./}-" | tr '\n' ',')
+    - export TOXENV
+    - tox
