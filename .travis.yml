@@ -1,22 +1,18 @@
-dist: xenial
 language: python
 python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9-dev"
+- '3.6'
+- '3.7'
+- '3.8'
+install:
+- 'pip install -r dev-requirements.txt'
+- 'pip install -e .'
 script:
-  - python setup.py test
+- pytest --vcr-record=none --cov=tenable tests
 deploy:
   provider: pypi
-  user: phillbaker
+  user: stevemcgrath
   password:
-    secure: mVdcld2aKKJQuva8VnHYaBllFOMASZOKRQa81UymwbWcjVy+88lQ0FxEk3ntCcfXkOP8QJogilbh65Y/H4YwNpq3XnG7XQXsfJARL4CU4z3RKUnFq3bLdETk4UosRj7m7lKnKr1OOwYf1NXRki252gPAqM8l0bp3D3GZW3bZnJEFavOc46gQbIbun0tkX40RxAT2luSS1nmRMYk7xZBroFamunJLywt1VKGkFfX48UwPRDm4UFJjGg/6lYDsbC88C2+hSPIStUKHjulZQsWGLGGBLFxoDFo8MSRmfHLY7siWLAnb5H2nej/tLAeN3U1ilVHF8cI1KTKVXOTSsm9fYBhEOl9wxLkgo8h9KWec40FM6L2xbj6axgHU00ZCcdbGlLyH7a64ftnOii9C3CQYs6WhKAYtU9zjl86NhSuhvHqSX2qhom4CE12lOV+NKLLIws9mzVFeh3L+Qz3aOhSmgPraHAc4ug5lFzigMgKnwRhwidWOSUfzwMSirpNiZ8XFVBcl5JsBM3xbQ4NdTnndSbphGocjIYMkeyNWZs+ITDMq3RXaJeG31ZIFYHBa6bQLxOWFSuxehwCHTbx6k5ipTeO1MYTs/RQRZKvR+NFbV0a9CU7/fYeo7suWhb/UIW9c6aMaLOEnB8Xs/paXbY7p7eT/8PCdrdUrU2a8aWbhYuM=
-  skip_cleanup: true
-  distributions: "sdist bdist_wheel"
+    secure: oqakiyseiKO3b2xoOLxCPDNJI/kPrrjk06OQG7GzbbjI1D8lMgQB6TnIW1qEv2MdXlDuQd4ViqAV5UQyt1mnibjEpdI2ECAtGi+CJSrmmQxiEuiNGJE35p+7slc5GKoBOkV7CEu2o4fKvAQXCWtIgN0DDF0IFpeCol2FtKVo9V2Iw8jl//WL9IEis+56SxccUXf2bHMkwOuYh/pHv27JdMvox7/hhiG3FmHgGA1GunAlbiUrOhz6+wTXJNFlIBjDHnwstTP1MmdmCJNlsftzE3hD0CA8BS1FtiJY0UlSbMfZv8wwwDAnaZqmO1la8za/0aYIKaTUkvTW9rxckv+aZi2/Up73osdQ4Lw2EydRaUweYPAPqHthsa1rDFAvteGBm8y3JfJoFWaO4Z+dxc02+LMv+oxZwXd3QFZMniEBV/YOYB6tCUifKjD/n+RT/CVLVEjaGBT3kUIF6G1rI8O9HgiCiTLWifQ1xLRy1KNxtdJvDO6GmmAs4XhbZy1vrerygp0OXBT65b1HV/9GJwvyTNeuhztdXARslJGS7tA6KCFG0NoiU+G82nJ8mzm+5yBE3uf+gBW+413dLMoD+vSeCjPM7cUZ2cGdkktFT/Vse0LHg0tM6aqIeODm47toS1Cbix81G4L/SHbHiKJ5zCsO3GgLPlO2YdU9dx92PFRnMSY=
   skip_existing: true
   on:
-    branch: master
     tags: true
