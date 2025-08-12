@@ -1,16 +1,14 @@
 language: python
+cache: pip
+os: linux
 python:
-    - "3.6"
-
-branches:
-    only:
-        - master
-
-sudo: false
-
-install:
-    - pip install sphinx${SPHINX_VERSION:+==$SPHINX_VERSION}
-    - pip install -r requirements-travis.txt
-
+  - "3.4"
+jobs:
+  include:
+    - python: "3.8"
+      script:
+        - pip install black mypy
+        - make check
+install: pip install --editable .[dev]
 script:
-    - inspekt checkall --disable-style E501,E265,W601,W605,E402,E722,E741 --no-license-check
+  - make check-tests
