@@ -1,17 +1,19 @@
+
 language: python
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-notifications:
-  email: false
-# command to install dependencies
-install:
-  - pip install flake8
-  - pip install -r requirements.txt
-# command to run tests
+
+branches:
+  only:
+    - master
+
 script:
-  - flake8 .
-  - sed -i.bak "s/^SECRET_KEY = ''$/SECRET_KEY = 'randomstring'/g" tramcar/settings.py
-  - python manage.py test
+  - tox -e $TOX_ENV
+
+install:
+  - pip install tox
+
+matrix:
+  include:
+    - python: 2.7
+      env: TOX_ENV=py27
+    - python: 3.6
+      env: TOX_ENV=py36
