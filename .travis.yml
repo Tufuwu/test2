@@ -1,14 +1,16 @@
 language: python
-
+sudo: false
 python:
-  - "2.7"
-  - "3.4"
-  - "3.8"
-
+    - "3.6"
+    - "3.7"
+    - "3.8"
+    - "3.9"
 install:
-  - ./scripts/install_radare2.sh
-  - pip install -r python/requirements_ci.txt
-  - cd python && ./setup.py install
-
+    - pip install -U pip wheel coverage codecov
+    - pip install -r requirements.txt pytest pytest-mock
+    - python setup.py develop
 script:
-  - cd test && make tests
+    - coverage run -m py.test -v tests/ && codecov
+cache:
+    directories:
+        - $HOME/.cache/pip
