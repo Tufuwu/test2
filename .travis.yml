@@ -1,38 +1,25 @@
----
-sudo: false
+os: linux
 dist: xenial
 language: python
-cache: pip
-
 matrix:
-  fast_finish: true
   include:
-    # https://docs.djangoproject.com/en/dev/faq/install/#what-python-version-can-i-use-with-django
-    - {env: DJANGO=2.2, python: '3.5'}
-    - {env: DJANGO=2.2, python: '3.6'}
-    - {env: DJANGO=2.2, python: '3.7'}
-    - {env: DJANGO=2.2, python: '3.8'}
-    - {env: DJANGO=2.2, python: 'nightly'}
-
-    - {env: DJANGO=3.0, python: '3.6'}
-    - {env: DJANGO=3.0, python: '3.7'}
-    - {env: DJANGO=3.0, python: '3.8'}
-    - {env: DJANGO=3.0, python: 'nightly'}
-
-    - {env: DJANGO=master, python: '3.6'}
-    - {env: DJANGO=master, python: '3.7'}
-    - {env: DJANGO=master, python: '3.8'}
-    - {env: DJANGO=master, python: 'nightly'}
-
-    - {python: '3.7', env: TOXENV=docs}
-    - {python: '3.7', env: TOXENV=quality}
-
-  allow_failures:
-    - python: 'nightly'
-    - env: DJANGO=master
-
+    - python: 3.6
+      env: TOXENV=flake8
+    - python: 3.6
+      env: TOXENV=black
+    - python: 3.6
+      env: TOXENV=elasticsearch
+      services:
+        - docker
+      before_install:
+        - docker pull elasticsearch:7.3.2
+        - docker run --name elasticsearch -e "discovery.type=single-node" -p 9200:9200 -d elasticsearch:7.3.2
+        - docker ps
+        - sleep 60
 install:
-  - travis_retry pip install tox tox-travis
-
+  - pip install tox
+  - pip install codecov
 script:
   - tox
+after_success:
+  - codecov
