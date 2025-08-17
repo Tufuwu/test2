@@ -1,19 +1,13 @@
 language: python
-os: linux
-dist: xenial
 python:
-  - 3.6
-  - 3.7
-  - 3.8
-  - 3.9-dev
-
+  - "2.7"
+  - "3.8"
+# command to install dependencies
+before_install:
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
 install:
-  - pip install pyflakes pytest pytest-doctestplus
-
+  - python setup.py develop
+# command to run tests
 script:
-  - set -e
-  - pyflakes .
-  - python -We:invalid -We::SyntaxWarning -m compileall -f -q removestar/
-  - pytest
-  # Make sure it installs
-  - python setup.py install
+  - nosetests
