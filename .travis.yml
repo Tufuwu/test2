@@ -1,18 +1,17 @@
-sudo: required
 dist: xenial
 language: python
-before_script:
-- pip install tox
-# test script
-script:  tox
-notifications:
-  on_success: change
-  on_failure: always
-matrix:
-  include:
-    - python: 3.6
-      env: TOX_SKIP_ENV=typeshed
-    - python: 3.7
-      env: TOX_SKIP_ENV=typeshed
-    - python: 3.8
-    - python: 3.9-dev
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+# command to install dependencies
+install:
+  - "pip install -e ."
+  - "pip install pycodestyle"
+# command to run tests
+script:
+  # Tests
+  - python setup.py test
+  - pycodestyle tableauserverclient test samples
