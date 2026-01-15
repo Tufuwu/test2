@@ -1,28 +1,29 @@
-# Config file for automatic testing at travis-ci.org
-
 language: python
-python:
-  - 3.6
-  - 3.5
-  - 3.4
-
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
-
-# Command to run tests, e.g. python setup.py test
-script: tox
-
-# Assuming you have installed the travis-ci CLI tool, after you
-# create the Github repo and add it to Travis, run the
-# following command to finish PyPI deployment setup:
-# $ travis encrypt --add deploy.password
-# deploy:
-#   provider: pypi
-#   distributions: sdist bdist_wheel
-#   user: dhepper
-#   password:
-#     secure: PLEASE_REPLACE_ME
-#   on:
-#     tags: true
-#     repo: dhepper/django-model-path-converter
-#     python: 3.6
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - python3.5
+      - python3.6
+install:
+  - pip install tox
+script:
+  - tox
+env:
+  - TOXENV=py27-django-18
+  - TOXENV=py34-django-18
+  - TOXENV=py35-django-18
+  - TOXENV=py36-django-18
+  - TOXENV=py27-django-19
+  - TOXENV=py34-django-19
+  - TOXENV=py35-django-19
+  - TOXENV=py36-django-19
+  - TOXENV=py27-django-110
+  - TOXENV=py34-django-110
+  - TOXENV=py35-django-110
+  - TOXENV=py36-django-110
+  - TOXENV=py27-django-111
+  - TOXENV=py34-django-111
+  - TOXENV=py35-django-111
+  - TOXENV=py36-django-111
