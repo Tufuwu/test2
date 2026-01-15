@@ -1,9 +1,13 @@
+sudo: false
 language: node_js
 node_js:
-  - "lts/*"
-script:
-  - npm run build:prod
-  - npm run test:coverage
-  - npm run lint
-after_success:
-  - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+  - "12"
+  - "14"
+  - "16"
+  - "17"
+
+env:
+  - WINSTON_VER=winston@3
+
+before_install:
+  - travis_retry npm install $WINSTON_VER
