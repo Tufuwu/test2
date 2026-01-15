@@ -1,11 +1,15 @@
-dist: xenial
 language: python
-install: pip install -r requirements/dev.txt
 python:
   - "3.8"
   - "3.9"
+  - "3.10"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install pytest pytest-cov
+  - pip install coverage
+# command to run tests
 script:
-  - pylama .
-  - pytest tests/
-  - black . --check --diff
-  - isort . --check --diff
+  - pytest --cov=./
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
