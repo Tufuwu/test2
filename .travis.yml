@@ -1,11 +1,6 @@
-addons:
-  firefox: "latest"
-dist: bionic
 language: node_js
 node_js:
-  - '12'
-  - '14'
   - '16'
+  - '18'
 script:
-  - npx playwright install
   - npm run build
