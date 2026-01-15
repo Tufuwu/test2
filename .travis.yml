@@ -1,11 +1,14 @@
+dist: xenial
 language: python
 python:
-        - "2.7"
-        - "3.6"
-        - "3.7"
-        - "3.8"
-        - "3.9"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8-dev"
 install:
-        - pip install -r requirements.txt
-        - pip install -r test_requirements.txt
-script: "make test"
+  - pip install --upgrade pipenv
+  - pipenv --three
+  - pipenv install --dev
+script:
+  - python3 -m tests.test
