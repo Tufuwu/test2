@@ -1,26 +1,32 @@
+dist: bionic
 language: python
-dist: xenial
-sudo: false
-python:
-  - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
-  - 3.7
+
+matrix:
+    include:
+      - python: 3.6.12
+        env: TOX_ENV=py36
+      - python: 3.7.9
+        env: TOX_ENV=py37
+      - python: 3.8.6
+        env: TOX_ENV=py38
+      - python: 3.9.1
+        env: TOX_ENV=py39
+      - python: pypy3
+        env: TOX_ENV=pypy3
+      - python: 3.9.1
+        env: TOX_ENV=lint
+
 install:
-  # pypandoc is needed only for submitting package to pypi
-  - sed '/pypandoc/d' -i requirements.txt
-  - pip install -U -r requirements.txt
-  - ./setup.py install
+  - pip install -U -r requirements-dev.txt
+  - pip install .
+
 script:
-  - py.test --cov=ssh_ldap_pubkey --cov-report term -vv
-  - pycodestyle
-deploy:
-  provider: pypi
-  user: jirutka
-  password:
-    secure: "2tzmNOMTjVcyIckYun5iZbgr9/6nrhImD4eFYOCbFFDezilGmPHwfbgp0zx55nrkdNOSB/mgsV+pYAdq8+0CRd/BcZZb9oosyS7n1vjPAP9fMNa02SsaqTWDzDpcNnGbfg7qOhKC/FyQ+H4uXp8w+pe4RfJFCUS/ywOimBEYrSI="
-  skip_cleanup: true
-  on:
-    tags: true
-    python: 3.7
+  - tox -e $TOX_ENV
+  - pytest --dead-fixtures
+
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
+
+cache:
+  directories:
+    - $HOME/.cache/pip
