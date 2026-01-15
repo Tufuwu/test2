@@ -1,16 +1,25 @@
+notifications:
+  email: false
 language: python
-matrix:
-  include:
-    - python: 2.6
-      dist: trusty
-    - python: 2.7
-    - python: 3.4
-    - python: 3.5
-    - python: 3.6
-    - python: 3.7
-    - python: 3.8
-      sudo: true
-    - python: pypy
+python:
+  - '3.6'
+  - '3.7'
+  - '3.8'
+  - '3.9'
+cache: pip
+before_install:
+  - pip install poetry codecov
 install:
-  - pip install tox-travis
-script: tox
+  - poetry install
+script:
+  - poetry run coverage run -m pytest -v
+after_success:
+  - codecov
+deploy:
+  provider: script
+  script: poetry config pypi-token.pypi "${POETRY_PYPI_TOKEN_PYPI}" && poetry publish --no-interaction --build
+  on:
+    tags: true
+    branch: master
+    python: '3.6'
+  allow_failure: false
