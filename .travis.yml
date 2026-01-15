@@ -1,7 +1,6 @@
 language: node_js
 node_js:
-  - '14'
-before_install:
-  - yarn
-script:
-  - yarn ci
+  - "9"
+  - "8"
+  - "6"
+  - "4"
