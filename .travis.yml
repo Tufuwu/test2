@@ -1,7 +1,26 @@
 language: python
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
+  - "pypy3"
+  - "pypy"
+  - "3.10"
   - "3.9"
-script: "python setup.py sdist && cd dist/ && tar xf hsluv-*.tar.gz && cd hsluv-*/ && python setup.py test"
+  - "3.8"
+  - "3.7"
+  - "3.6"
+  - "3.5"
+  - "2.7"
+
+cache: pip
+
+env:
+  global:
+    - TOXENV=base,optional,six19-optional
+
+install:
+  - pip install tox
+
+script:
+  - tox
+
+after_script:
+  - python debug-info.py
