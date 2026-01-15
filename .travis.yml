@@ -1,34 +1,23 @@
 language: python
+dist: xenial
 
 install:
-  - pip install -r requirements.txt
+  - pip install tox codecov
+
+matrix:
+ include:
+  - python: 2.7
+    env: TOXENV=py27
+  - python: 3.7
+    env: TOXENV=py37
 
 script:
-  - pytest
-  - mypy pyteal
-  - python3 -c "import pyteal" scripts/generate_init.py --check
-  - black --check .
+  - tox
 
-jobs:
-  include:
-    - stage: Testing
-      name: Python 3.6
-      python: "3.6"
-    - name: Python 3.7
-      python: "3.7"
-    - name: Python 3.8
-      python: "3.8"
-    - name: Python 3.9
-      python: "3.9"
-    - stage: Release
-      name: PyPi release
-      python: "3.9"
-      script: skip
-      if: tag IS present AND type = push
-      deploy:
-        provider: pypi
-        username: __token__
-        on:
-          tags: true
-          branch: master
-        distributions: "sdist bdist_wheel"
+after_success:
+  - codecov
+
+notifications:
+  email:
+    on_success: never
+    on_failure: always
