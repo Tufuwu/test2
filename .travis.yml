@@ -1,11 +1,9 @@
-sudo: required
 dist: xenial
 language: python
-python: 
-  - "3.6"
-  - "3.7"
-  - "3.8"
+python: 3.7
+
 install:
-  - pip install tox-travis
+    - make install-deps
+
 script:
-  - tox
+    - make
