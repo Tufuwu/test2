@@ -1,16 +1,16 @@
+dist: xenial
 language: python
 
-jobs:
-  include:
-    - name: "Python 3.10 on Linux"
-      python: 3.10
+matrix:
+    include:
+        - python: "2.7"
+        - python: "3.5"
+        - python: "3.6"
+        - python: "3.7"
 
 install:
-  - pip3 install -r requirements.txt || pip install -r requirements.txt
+    - pip install -r requirements.txt
 
 script:
-  - flake8 --ignore=E501,W503
-  - pytest -v --cov-report=xml --cov=src/sdialog
+    - python run_demo_md.py
 
-after_success:
-  - codecov
