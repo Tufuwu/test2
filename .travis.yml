@@ -1,6 +1,11 @@
+sudo: false
 language: node_js
 node_js:
-  - "node"
-before_script:
-  - npm test
+  - "stable"
+
+script:
   - npm run build
+  - npm test
+
+after_success:
+  - npm run codecov
