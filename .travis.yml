@@ -1,27 +1,19 @@
-language: python
-
 os: linux
-
 dist: xenial
-
-python:
-  - '3.5.2'
-  - '3.5'
-  - '3.6'
-  - '3.7'
-  - '3.8'
-  - '3.9'
-  - 'pypy3.5'
-
+language: node_js
+node_js: 12
 install:
-  - pip install tox-travis codecov
+  - npm install
+script:
+  - npm run build
+  - npm run serve &
+  - npm test
 
-script: tox
-
-after_success: |
-  VERSION="python_${TRAVIS_PYTHON_VERSION//[^[:alnum:]]/}" &&
-  codecov --required --flags $VERSION ||
-  (sleep 5 && codecov --required --flags $VERSION) ||
-  (sleep 10 && codecov --required --flags $VERSION) ||
-  (sleep 20 && codecov --required --flags $VERSION) ||
-  (sleep 30 && codecov --required --flags $VERSION)
+jobs:
+  include:
+    - stage: release
+      deploy:
+        skip_cleanup: true # stupid travis complains about this option, yet it requires it
+        provider: script
+        script:
+          - npm run semantic-release
