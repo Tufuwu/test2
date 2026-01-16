@@ -1,10 +1,10 @@
 language: python
 python:
-  - "3.6"
+- "2.7"
+- "3.5"
 install:
-  - pip install codecov
-  - pip install coverage
+- pip install -r requirements-dev.txt
 script:
-  - coverage run jsn.py -i example.jsn -o test.json -I import_dir
-after_success:
-  - codecov
+- python -c 'import bambam'
+- flake8 *.py
+- autopep8 -d *.py | awk 'BEGIN{had_data=0}{print;had_data=1}END{exit had_data}'
