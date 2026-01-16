@@ -1,14 +1,14 @@
 language: python
 python:
-  - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
-env:
-  - DJANGO_VERSION=1.11
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+
 install:
-  - pip install -q Django==$DJANGO_VERSION
-  - pip install -e .[flake8,tests]
+  - pip install -r requirements.txt
+  - pip install aiosqlite
+
 script:
-  - flake8
-  - pytest
+  - cd tests
+  - ./test.py
