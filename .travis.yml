@@ -1,25 +1,38 @@
-notifications:
-  email: false
-language: python
-python:
-  - '3.6'
-  - '3.7'
-  - '3.8'
-  - '3.9'
-cache: pip
-before_install:
-  - pip install poetry codecov
+sudo: true
+dist: jammy
+
+services:
+  - docker
+
 install:
-  - poetry install
+  - docker-compose build
+
 script:
-  - poetry run coverage run -m pytest -v
-after_success:
-  - codecov
-deploy:
-  provider: script
-  script: poetry config pypi-token.pypi "${POETRY_PYPI_TOKEN_PYPI}" && poetry publish --no-interaction --build
-  on:
-    tags: true
-    branch: master
-    python: '3.6'
-  allow_failure: false
+  - docker-compose run --entrypoint="pytest tests" nycdb
+
+jobs:
+  include:
+    - env:
+        PYTHON_VERSION: 3.12-rc-bullseye
+        POSTGRES_VERSION: 15
+    - env:
+        PYTHON_VERSION: 3.11-bullseye
+        POSTGRES_VERSION: 15
+    - env:
+        PYTHON_VERSION: 3.11-bullseye
+        POSTGRES_VERSION: 14
+    - env:
+        PYTHON_VERSION: 3.10-bullseye
+        POSTGRES_VERSION: 14
+    - env:
+        PYTHON_VERSION: 3.10-bullseye
+        POSTGRES_VERSION: 13
+    - env:
+        PYTHON_VERSION: 3.10-bullseye
+        POSTGRES_VERSION: 12
+    - env:
+        PYTHON_VERSION: 3.9-bullseye
+        POSTGRES_VERSION: 14
+    - env:
+        PYTHON_VERSION: 3.8-bullseye
+        POSTGRES_VERSION: 14
