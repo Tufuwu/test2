@@ -1,19 +1,19 @@
-os: linux
-dist: noble
 language: node_js
-node_js: 16
+
+node_js:
+  - 16
+
 install:
   - npm install
-script:
-  - npm run build
-  - npm run serve &
-  - npm test
 
-jobs:
-  include:
-    - stage: release
-      deploy:
-        skip_cleanup: true # stupid travis complains about this option, yet it requires it
-        provider: script
-        script:
-          - npm run semantic-release
+script:
+  - $CI_ACTION
+
+env:
+  matrix:
+    - CI_ACTION="npm run dist"
+    - CI_ACTION="npm run test:ci"
+
+branches:
+  only:
+    - master
