@@ -1,9 +1,9 @@
 language: node_js
 node_js:
-  - "10"
-  - "12"
-  - "14"
-before_install:
-  - npm install grunt-cli -g
+  - lts/*
+  - 22
+  - 20
+before_script:
 script:
   - npm test
+  - npm run lint
