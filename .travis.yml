@@ -1,20 +1,34 @@
 language: python
 
-notifications:
-  email: false
-
-python:
-  - 3.8
-  - 3.9
-
 install:
-  - pip install coveralls
-  - pip install .
+  - pip install -r requirements.txt
 
 script:
-  - python test.py
-  - python setup.py check --strict --metadata
-  - coverage run --source=nativetypes test.py
+  - pytest
+  - mypy pyteal
+  - python3 -c "import pyteal" scripts/generate_init.py --check
+  - black --check .
 
-after_success:
-  - coveralls
+jobs:
+  include:
+    - stage: Testing
+      name: Python 3.6
+      python: "3.6"
+    - name: Python 3.7
+      python: "3.7"
+    - name: Python 3.8
+      python: "3.8"
+    - name: Python 3.9
+      python: "3.9"
+    - stage: Release
+      name: PyPi release
+      python: "3.9"
+      script: skip
+      if: tag IS present AND type = push
+      deploy:
+        provider: pypi
+        username: __token__
+        on:
+          tags: true
+          branch: master
+        distributions: "sdist bdist_wheel"
