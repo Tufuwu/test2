@@ -1,13 +1,10 @@
-dist: noble
 language: python
 python:
   - 3.8
-env:
-  - DJANGO="<2" DRF="<3.8"
-  - DJANGO="<2" DRF="<3.9"
-  - DJANGO="<2.1" DRF="<3.9"
-  - DJANGO="<2.2" DRF="<3.9"
+  - 3.9
+  - 3.10
+  - 3.11
 install:
-  - pip install "django${DJANGO}" "djangorestframework${DRF}"
+    - pip install -r requirements-dev.txt
 script:
-  - python runtests.py
+    - py.test -v
