@@ -4,6 +4,7 @@ node_js:
   - "22"
   - "20"
   - "18"
+  - "16"
 
 after_success:
   - npm run coveralls
