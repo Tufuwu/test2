@@ -1,15 +1,4 @@
 language: python
 python:
-  - 3.8
-  - 3.9
-  - 3.10
-  - 3.11
-
-install:
-  - pip install . pytest-cov pytest
-
-script:
-  - python -m pytest --cov=ansimarkup tests
-
-notifications:
-  email: false
+  - "3.8"
+script: "python setup.py sdist && cd dist/ && tar xf hsluv-*.tar.gz && cd hsluv-*/ && python setup.py test"
