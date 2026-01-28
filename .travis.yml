@@ -1,23 +1,28 @@
+# Config file for automatic testing at travis-ci.org
+
 language: python
-
-os: linux
-
-dist: noble
-
 python:
-  - '3.8'
-  - '3.9'
-  - 'pypy3.8'
+  - 3.10
+  - 3.9
 
-install:
-  - pip install tox-travis codecov
 
+# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -U tox-travis
+
+# Command to run tests, e.g. python setup.py test
 script: tox
 
-after_success: |
-  VERSION="python_${TRAVIS_PYTHON_VERSION//[^[:alnum:]]/}" &&
-  codecov --required --flags $VERSION ||
-  (sleep 5 && codecov --required --flags $VERSION) ||
-  (sleep 10 && codecov --required --flags $VERSION) ||
-  (sleep 20 && codecov --required --flags $VERSION) ||
-  (sleep 30 && codecov --required --flags $VERSION)
+# Assuming you have installed the travis-ci CLI tool, after you
+# create the Github repo and add it to Travis, run the
+# following command to finish PyPI deployment setup:
+# $ travis encrypt --add deploy.password
+# deploy:
+#   provider: pypi
+#   distributions: sdist bdist_wheel
+#   user: dhepper
+#   password:
+#     secure: PLEASE_REPLACE_ME
+#   on:
+#     tags: true
+#     repo: dhepper/django-model-path-converter
+#     python: 3.6
