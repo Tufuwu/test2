@@ -1,13 +1,25 @@
+language: python
+os: linux
 dist: noble
 
-language: python
-
 python:
-  - "3.9"
+  - "3.8"
+
+env:
+  - TOX_ENV=py38
+  - TOX_ENV=flake8
+
+before_install:
+  # Mock Python gi package
+  - export PYUSRSITEDIR=$(python -m site --user-site)
+  - mkdir -p $PYUSRSITEDIR
+  - "echo \"import sys; import mock; sys.modules['gi'] = mock.Mock(); sys.modules['gi.repository'] = mock.Mock(); sys.modules['gi.repository'].Gst.version.side_effect = lambda: (1, 14, 0)\" > ${PYUSRSITEDIR}/usercustomize.py"
 
 install:
-  - pip install sphinx==3.2.1 pyspark==3.0.1 tensorflow-cpu==1.15.0
+  - "pip install tox"
 
 script:
-  - pushd docs/ && PYTHONPATH=.. make clean html && popd
-  - pytest
+  - "tox -e $TOX_ENV"
+
+after_success:
+  - "if [ $TOX_ENV == 'py38' ]; then pip install coveralls requests; coveralls; fi"
