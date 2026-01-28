@@ -1,13 +1,16 @@
 sudo: false
 language: node_js
 node_js:
-  - "12"
-  - "14"
-  - "16"
-  - "17"
-
-env:
-  - WINSTON_VER=winston@3
-
-before_install:
-  - travis_retry npm install $WINSTON_VER
+  node
+install:
+  - npm install
+  - make clean
+  - make
+cache:
+  directories:
+    - node_modules
+    - $HOME/.nvm
+script:
+  - npx mocha-headless-chrome -a no-sandbox -f test/index.html
+notifications:
+  email: false
