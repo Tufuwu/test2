@@ -1,10 +1,9 @@
-sudo: required
 dist: noble
 language: python
-python: 
-  - "3.8"
-  - "3.9"
+python: 3.9
+
 install:
-  - pip install tox-travis
+    - make install-deps
+
 script:
-  - tox
+    - make
