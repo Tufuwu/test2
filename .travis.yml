@@ -1,29 +1,17 @@
-# Config file for automatic testing at travis-ci.org
-
 language: python
 
 python:
   - "3.8"
   - "3.9"
+  - "3.10"
 
-# use default python version for each env
-env:
-  - TOX_ENV=py-django-22
-  - TOX_ENV=py-django-32
+install:
+  # To work around a problem with wilson package we take the git master version of it
+  - "pip3 install ."
+  - "pip3 install nose2"
+  - "pip3 install coveralls"
 
-matrix:
-  fast_finish: true
+script:
+  - "nose2 --with-coverage"
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements_test.txt
-
-# command to run tests using coverage, e.g. python setup.py test
-script: tox -e $TOX_ENV
-
-after_success:
-  - codecov -e TOX_ENV
-
-notifications:
-  email:
-    on_success: never
-    on_failure: never
+after_success: coveralls
