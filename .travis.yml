@@ -1,6 +1,3 @@
-sudo: false
 language: node_js
-node_js:
-  - stable
-  - "20"
-  - "18"
+node_js: node
+script: npm run lint
