@@ -1,35 +1,24 @@
 language: python
-
 dist: noble
-
+sudo: false
 python:
-
-  - "3.8"
-
-  - "3.9"
-
-  - "3.10"
-
+  - 3.8
+  - 3.9
+  - 3.10
 install:
-
-  - pip install codecov
-
-  - pip install -r requirements.txt
-
-  - pip install -r test-requirements.txt
-
+  # pypandoc is needed only for submitting package to pypi
+  - sed '/pypandoc/d' -i requirements.txt
+  - pip install -U -r requirements.txt
+  - ./setup.py install
 script:
-
-  - flake8 stockstats.py test.py
-
-  - py.test --cov=./ test.py
-
-after_success:
-
-  - codecov
-
-notifications:
-
-  email:
-
-    - jealous@163.com
+  - py.test --cov=ssh_ldap_pubkey --cov-report term -vv
+  - pycodestyle
+deploy:
+  provider: pypi
+  user: jirutka
+  password:
+    secure: "2tzmNOMTjVcyIckYun5iZbgr9/6nrhImD4eFYOCbFFDezilGmPHwfbgp0zx55nrkdNOSB/mgsV+pYAdq8+0CRd/BcZZb9oosyS7n1vjPAP9fMNa02SsaqTWDzDpcNnGbfg7qOhKC/FyQ+H4uXp8w+pe4RfJFCUS/ywOimBEYrSI="
+  skip_cleanup: true
+  on:
+    tags: true
+    python: 3.10
