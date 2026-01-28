@@ -1,9 +1,7 @@
-os:
-  - linux
-  - osx
-  - windows
 language: node_js
+dist: noble
 node_js:
-  - node
-  - '20'
+  - '16'
+  - '17'
   - '18'
+  - '19'
