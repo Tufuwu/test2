@@ -1,5 +1,15 @@
 language: node_js
-node_js:
-  - node
-  - 10
-  - 8
+
+sudo: false
+
+cache: yarn
+
+install:
+  - yarn install
+
+jobs:
+  include:
+    - stage: inspector view
+      script: yarn build:inspectorView
+    - stage: edit mode
+      script: yarn build:editMode
