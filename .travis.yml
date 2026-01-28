@@ -1,23 +1,21 @@
-os: linux
-dist: focal
+dist: noble
 language: python
 python:
   - 3.8
-  - 3.9
-  - 3.10
-  - 3.11
-  - 3.12
-  - 3.13
-  - nightly
-  - "pypy3.8"    
-  - "pypy3.9"     
-  - "pypy3.10"    
-  - "pypy3.11"  
+
+matrix:
+  include:
+    - python: "3.8"
+      env: TOXENV=cover
+    - python: "3.8"
+      env: TOXENV=black
+
 install:
-    - pip install --upgrade pytest coveralls coverage
-    - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
+  - npm i -g elm
+  - pip install tox-travis
+
 script:
-  - pwd
-  - coverage run --source=neat -m pytest tests
+  - tox
+
 after_success:
-    coveralls
+  - coveralls
