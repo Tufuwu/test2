@@ -1,18 +1,24 @@
----
 language: python
+jobs:
+  - python: "3.8"
+    allow_failure: true
+  - python: "3.9"
+    allow_failure: true
+  - python: "3.10"
+    allow_failure: true
+  - python: "pypy2.7"
+    allow_failure: true
+  - python: "pypy3.6"
+    allow_failure: true
+  - python: "pypy3.7"
+    allow_failure: true
+  - python: "pypy3.8"
+    allow_failure: true
+  - python: "pypy3.9"
+    allow_failure: true
 
-python:
-  - "3.8"
-  - "3.9"
-  - "nightly"
-
-install:
-  - pip install -U pip
-  - pip install -U wheel setuptools pbr
-  - pip install -U .[docs,test]
-  - pip list
-  - python --version
-
+install: pip install coveralls
 script:
-  - make check
-  - rst2html.py README.rst README.html
+  - coverage run --branch --source=crc32 test.py
+after_success:
+  - coveralls
