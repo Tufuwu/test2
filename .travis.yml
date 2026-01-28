@@ -1,26 +1,18 @@
-dist: noble
 language: python
+python:
+  - '3.8'
 
-matrix:
-    include:
-      - python: 3.8
-        env: TOX_ENV=py38
-      - python: 3.9
-        env: TOX_ENV=py39
-      - python: pypy3.7
-        env: TOX_ENV=pypy3.7
+# Whitelist of branches to build
+branches:
+  only:
+    - master
 
-install:
-  - pip install -U -r requirements-dev.txt
-  - pip install .
+# Avoid email notifications on every build
+notifications:
+  email: false
 
-script:
-  - tox -e $TOX_ENV
-  - pytest --dead-fixtures
+# Installation command
+install: python setup.py install
 
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
-
-cache:
-  directories:
-    - $HOME/.cache/pip
+# Run pytest
+script: python -m pytest -v
