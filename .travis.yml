@@ -1,29 +1,23 @@
 language: python
-dist: noble
-
+dist: focal
+python:
+  - "3.8"
+  - "3.9"
+  - "3.10"
+  # - "3.11"
 install:
-  - pip install tox codecov
-
-matrix:
- include:
-  - python: 3.8
-    env: TOXENV=py38
-  - python: 3.9
-    env: TOXENV=py39
-  - python: 3.10
-    env: TOXENV=py10
-  - python: 3.11
-    env: TOXENV=py311
-  - python: 3.12
-    env: TOXENV=py312
-
+  - nvm install
+  - nvm use
+  - pip install --upgrade pip setuptools wheel
+  - pip install -r requirements-dev.txt
 script:
-  - tox
-
-after_success:
-  - codecov
-
-notifications:
-  email:
-    on_success: never
-    on_failure: always
+  - cp django_airavata/settings_local.py.sample django_airavata/settings_local.py
+  - python manage.py migrate
+  - python manage.py check
+  - flake8 .
+  - ./lint_js.sh
+  - ./build_js.sh
+  - ./test_js.sh
+  # Need to build the frontend client before running some of the Django tests
+  # that use the Django test Client
+  - ./runtests.py
