@@ -1,8 +1,15 @@
 language: node_js
 node_js:
-  - "node"
-install:
-  - npm install
+  - "10"
+  - "12"
+
+cache: yarn
+
 script:
-  - npm run coverage
-  - ./node_modules/.bin/codecov --disable=gcov --file=./coverage/lcov.info
+  - yarn lint
+  - yarn test
+  - yarn test:integration
+  - yarn test:notelemetry
+
+after_success:
+- yarn coveralls
