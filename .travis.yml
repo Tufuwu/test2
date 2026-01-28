@@ -1,24 +1,23 @@
-language: python
-jobs:
-  - python: "3.8"
-    allow_failure: true
-  - python: "3.9"
-    allow_failure: true
-  - python: "3.10"
-    allow_failure: true
-  - python: "pypy2.7"
-    allow_failure: true
-  - python: "pypy3.6"
-    allow_failure: true
-  - python: "pypy3.7"
-    allow_failure: true
-  - python: "pypy3.8"
-    allow_failure: true
-  - python: "pypy3.9"
-    allow_failure: true
 
-install: pip install coveralls
+language: python
+
+branches:
+  only:
+    - master
+
 script:
-  - coverage run --branch --source=crc32 test.py
-after_success:
-  - coveralls
+  - tox -e $TOX_ENV
+
+install:
+  - pip install tox
+
+matrix:
+  include:
+    - python: 3.8
+      env: TOX_ENV=py38
+    - python: 3.9
+      env: TOX_ENV=py39
+    - python: 3.10
+      env: TOX_ENV=py310
+    - python: 3.11
+      env: TOX_ENV=py311
