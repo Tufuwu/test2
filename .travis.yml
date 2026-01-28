@@ -2,5 +2,9 @@ language: python
 python:
   - "3.8"
 install:
-  - pip install -r requirements-dev.txt
-script: make test
+  - pip install codecov
+  - pip install coverage
+script:
+  - coverage run jsn.py -i example.jsn -o test.json -I import_dir
+after_success:
+  - codecov
