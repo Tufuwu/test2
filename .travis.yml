@@ -1,18 +1,22 @@
+sudo: false
+
 language: python
 
 python:
-  - 3.6
-  - 3.7
-  - 3.8
+  - "3.8"
+  - "3.9"
+  - "3.10"
 
+env:
+  - DJANGO="Django<3.0"
+  - DJANGO="Django<3.2"
+  - DJANGO="Django<4.0"
+  - DJANGO="Django<5.0"
+
+# Install dependencies.
 install:
-  - pip install -q coverage
-  - pip install -q coveralls
-  - pip install -q mock
-  - pip install .
+  - pip install -q $DJANGO
+  - pip install -r requirements.txt
 
-before_script: cd tests
-
-script: make coverage
-
-after_script: coveralls --rc=coveragerc
+# Run tests.
+script: python test.py
