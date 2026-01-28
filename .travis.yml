@@ -1,7 +1,13 @@
 language: python
+dist: noble
 python:
+  - "3.8"
+  - "3.9"
   - "3.10"
 install:
-  - pip install -r requirements.txt
+  - pip install .
 script:
-  - python -m unittest discover
+  - pip install scipy
+  - pytest
+notifications:
+  slack: bayeso:FWBoHH9TMqjKUJWkZxCaTNVE
