@@ -1,17 +1,8 @@
 sudo: false
+
 language: node_js
-cache: npm
+
 node_js:
-  - 16
-  - 18
-  - 20
-branches:
-  only:
-    - master
-notifications:
-  email: false
-script:
-  - npm run validate
-after_success:
-  - npm run test:report
-  - npm run release
+- '10'
+- '11'
+- '12'
